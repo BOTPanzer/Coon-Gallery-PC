@@ -4,10 +4,10 @@ from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical
 
-class GalleryScreen(Screen):
+class MetadataScreen(Screen):
 
     # Info
-    TITLE = 'Gallery'
+    TITLE = 'Metadata'
 
     # Albums
     albums = []
@@ -32,9 +32,7 @@ class GalleryScreen(Screen):
         yield Button(id='back', label='Back', variant='error')
         with self.content_container:
             yield self.info_label
-            yield Label('Gallery')
             yield Button(id='search', label='Search')
-            yield Label("Metadata")
             yield Button(id='create', label='Create')
             yield Button(id='clean', label='Clean')
             yield Button(id='fix', label='Fix')
@@ -75,7 +73,7 @@ class GalleryScreen(Screen):
             self.albums.append(album)
 
         # Update info
-        self.info_label.content = f'Items with metadata: {items_with_metadata} | Items without metadata: {items_without_metadata}'
+        self.info_label.content = f'· Items with metadata: {items_with_metadata}\n· Items without metadata: {items_without_metadata}'
 
         # Show content
         self.toggleContent(True)

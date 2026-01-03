@@ -6,7 +6,7 @@ from collections.abc import Callable
 class LinkItem(Static):
 
     # Constructor
-    def __init__(self, link: Link, index: int, on_modify: Callable[[], None], on_remove: Callable[[], None]):
+    def __init__(self, link: Link, index: int, on_modify: Callable[[], None], on_remove: Callable[["LinkItem"], None]):
         super().__init__()
         # Save info
         self.link = link
@@ -18,7 +18,6 @@ class LinkItem(Static):
         self.button_remove = None
         self.input_album = None
         self.input_metadata = None
-
 
     # Widget
     def compose(self):
@@ -38,8 +37,7 @@ class LinkItem(Static):
     def on_button_pressed(self, event: Button.Pressed):
         event.stop()            # Stop the event from bubbling up to the screen
         self.removed = True     # Mark as removed
-        self.remove()           # Remove widget from UI
-        self.on_remove()        # Call on remove
+        self.on_remove(self)    # Call on remove
 
     def on_input_changed(self, event: Input.Changed) -> None:
         match event.input.id:

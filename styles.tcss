@@ -1,8 +1,43 @@
+/* Links */
 LinkItem {
     height: 6;
 }
 
+#links-list {
+    min-height: 8;
+}
+
+/* Metadata info */
 .box {
     padding: 1 2;
     border: ascii white;
+}
+
+/* Dialogs */
+RemoveDialog {
+    align: center middle;
+}
+
+#dialog {
+    grid-size: 2;
+    grid-gutter: 0 2;
+    grid-rows: 1fr 3;
+    padding: 0 2;
+    width: 40;
+    height: 8;
+    border: ascii white;
+    background: $surface;
+}
+
+#dialog Label {
+    column-span: 2;
+    width: 2fr;
+    height: 1fr;
+    content-align: center middle;
+    text-style: bold;
+}
+
+#dialog Button {
+    width: 1fr;
+    margin: 0;
 }

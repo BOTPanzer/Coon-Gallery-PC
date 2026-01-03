@@ -1,11 +1,11 @@
 from textual.screen import Screen
-from textual.widgets import Header, Footer, Button, Label
-from screens.settings.settings import SettingsScreen
-from screens.sync.sync import SyncScreen
-from screens.gallery.gallery import GalleryScreen
+from textual.widgets import Header, Button, Label
+from screens.settings.settings_screen import SettingsScreen
+from screens.sync.sync_screen import SyncScreen
+from screens.metadata.metadata_screen import MetadataScreen
 
 class HomeScreen(Screen):
-    
+
     # Info
     TITLE = 'Coon Gallery'
 
@@ -15,9 +15,8 @@ class HomeScreen(Screen):
         # Create layout
         yield Header()
         yield Button(id='exit', label='Exit', variant='error')
-        yield Label('Menus')
         yield Button(id='settings', label='Settings')
-        yield Button(id='gallery', label='Gallery')
+        yield Button(id='metadata', label='Metadata')
         yield Button(id='sync', label='Sync')
 
     # Events
@@ -27,7 +26,7 @@ class HomeScreen(Screen):
                 self.app.exit()
             case 'settings':
                 self.app.push_screen(SettingsScreen())
-            case 'gallery':
-                self.app.push_screen(GalleryScreen())
+            case 'metadata':
+                self.app.push_screen(MetadataScreen())
             case 'sync':
                 self.app.push_screen(SyncScreen())

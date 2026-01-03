@@ -2,7 +2,7 @@ from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 
 class SyncScreen(Screen):
-    
+
     # Info
     TITLE = 'Sync'
     

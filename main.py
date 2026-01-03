@@ -1,7 +1,7 @@
 from util.link import Link
 from util.util import Util
 from textual.app import App
-from screens.home.home import HomeScreen
+from screens.home.home_screen import HomeScreen
 import pathlib
 import os
 
