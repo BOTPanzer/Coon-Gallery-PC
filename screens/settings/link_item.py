@@ -8,34 +8,25 @@ class LinkItem(Static):
     # Constructor
     def __init__(self, link: Link, index: int, on_modify: Callable[[], None], on_remove: Callable[["LinkItem"], None]):
         super().__init__()
-        # Save info
+        # Init info
         self.link = link
         self.index = index
         self.on_modify = on_modify
         self.on_remove = on_remove
 
-        # Save widgets
-        self.w_name = None
-        self.w_remove = None
-        self.w_album = None
-        self.w_metadata = None
-
     # Widget
     def compose(self):
         # Create widgets
         self.w_name = Label(f'Link {self.index}')
-        self.w_remove = Button(id='remove-link', label='Remove', variant='error')
-        self.w_album = Input(id='album', placeholder="Album folder path", value=self.link.album_path)
-        self.w_metadata = Input(id='metadata', placeholder='Metadata file path', value=self.link.metadata_path)
 
         # Create layout
         with Vertical():
             yield self.w_name
             with Horizontal():
-                yield self.w_remove
+                yield Button(id='remove-link', label='Remove', variant='error')
                 with Vertical():
-                    yield self.w_album
-                    yield self.w_metadata
+                    yield Input(id='album', placeholder="Album folder path", value=self.link.album_path)
+                    yield Input(id='metadata', placeholder='Metadata file path', value=self.link.metadata_path)
 
     # Events
     def on_button_pressed(self, event: Button.Pressed):

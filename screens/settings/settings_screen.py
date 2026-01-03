@@ -1,6 +1,6 @@
 from util.link import Link
+from util.dialog_confirm import ConfirmDialog
 from screens.settings.link_item import LinkItem
-from screens.settings.remove_dialog import RemoveDialog
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import VerticalScroll
@@ -51,7 +51,7 @@ class SettingsScreen(Screen):
         link_item.scroll_visible()
 
     def remove_link(self, link_item: LinkItem):
-        # Create confirm dialog event
+        # Create dialog event
         def handle_result(remove: bool):
             # Don't remove
             if not remove: return
@@ -65,5 +65,5 @@ class SettingsScreen(Screen):
             for index, item in enumerate(remaining_items):
                 item.update_index(index)
 
-        # Create confirm dialog
-        self.app.push_screen(RemoveDialog(), handle_result)
+        # Create dialog
+        self.app.push_screen(ConfirmDialog(f'Are you sure you want to remove Link {link_item.index}?'), handle_result)

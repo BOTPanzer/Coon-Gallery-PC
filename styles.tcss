@@ -7,34 +7,34 @@ LinkItem {
     min-height: 9;
 }
 
-/* Metadata info */
+/* Box */
 .box {
     padding: 1 2;
-    border: ascii white;
+    border: solid white;
 }
 
 /* Dialogs */
-RemoveDialog {
+InputDialog,
+ConfirmDialog {
     align: center middle;
 }
 
 #dialog {
     grid-size: 2;
-    grid-gutter: 0 2;
+    grid-gutter: 1 2;
     grid-rows: 1fr 3;
     padding: 0 2;
     width: 40;
-    height: 8;
-    border: ascii white;
+    height: 9;
+    border: tall white;
     background: $surface;
 }
 
-#dialog Label {
+InputDialog Input,
+ConfirmDialog Label {
     column-span: 2;
     width: 2fr;
     height: 1fr;
-    content-align: center middle;
-    text-style: bold;
 }
 
 #dialog Button {

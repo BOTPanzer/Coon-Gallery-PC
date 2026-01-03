@@ -2,6 +2,7 @@ from util.link import Link
 from util.util import Util
 from os import listdir
 from os.path import  isfile, join, exists, getmtime
+from collections.abc import Callable
 
 class Album:
 
@@ -109,3 +110,26 @@ class Album:
             else:
                 # No metadata -> Increase "without" count
                 self.items_without_metadata += 1
+
+    def search(self, search: str, on_result: Callable[[str], None]):
+        # Ignore case
+        search = search.casefold()
+
+        # Search items
+        for item_name in self.items:
+            # Check if item has metadata
+            if not self.has_metadata(item_name): continue
+
+            # Get metadata key
+            item_metadata = self.metadata[item_name]
+
+            # Check if metadata contains search
+            if (
+                (search in item_name) or
+                ('caption' in item_metadata and search in item_metadata['caption'].lower()) or 
+                ('labels' in item_metadata and any(search in item.casefold() for item in item_metadata['labels'])) or 
+                ('text' in item_metadata and any(search in item.casefold() for item in item_metadata['text']))
+            ): 
+                # Metadata contains search -> Call on result with item path
+                item_path = join(self.album_path, item_name)
+                on_result(item_path)

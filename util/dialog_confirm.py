@@ -2,12 +2,17 @@ from textual.screen import ModalScreen
 from textual.containers import Grid
 from textual.widgets import Button, Label
 
-class RemoveDialog(ModalScreen[bool]):
+class ConfirmDialog(ModalScreen[bool]):
+    
+    # Init
+    def __init__(self, title: str = "Are you sure?"):
+        self.title_text = title
+        super().__init__()
 
     # Widget
     def compose(self):
         with Grid(id="dialog"):
-            yield Label(id="dialog-question", content="Remove link?")
+            yield Label(content=self.title_text)
             yield Button(id="dialog-cancel", label="Cancel")
             yield Button(id="dialog-confirm", label="Confirm")
 
