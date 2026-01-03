@@ -11,20 +11,20 @@ class SettingsScreen(Screen):
     TITLE = 'Settings'
 
     # Widgets
-    links_container = None
+    w_links = None
 
 
     # Screen
     def compose(self):
         # Create widgets
-        self.links_container = VerticalScroll(id='links-list')
+        self.w_links = VerticalScroll(id='links-list')
 
         # Create layout
         yield Header()
         yield Button(id='back', label='Back', variant='error')
-        yield Label('Link are formed by an album folder and its metadata file\n· Add an album folder to enable backing it up\n· Add a metadata file to enable generating metadata\n\nNote: Make sure their number is the same in the phone app', classes='box')
+        yield Label(classes='box', content='Link are formed by an album folder and its metadata file\n· Add an album folder to enable backing it up\n· Add a metadata file to enable generating metadata for its album\n\nNote: Make sure you add links in the same order as in the phone app')
         yield Button(id='add-link', label='Add link')
-        with self.links_container:
+        with self.w_links:
             for index, link in enumerate(self.app.links):
                 yield self.create_link_item(index, link)
 
@@ -47,7 +47,7 @@ class SettingsScreen(Screen):
 
         # Add link item to container
         link_item = self.create_link_item(index, link)
-        self.links_container.mount(link_item)
+        self.w_links.mount(link_item)
         link_item.scroll_visible()
 
     def remove_link(self, link_item: LinkItem):
@@ -61,7 +61,7 @@ class SettingsScreen(Screen):
             link_item.remove() # Remove widget from UI
 
             # Update link items
-            remaining_items = [ child for child in self.links_container.query(LinkItem) if not getattr(child, 'removed', False) ]
+            remaining_items = [ child for child in self.w_links.query(LinkItem) if not getattr(child, 'removed', False) ]
             for index, item in enumerate(remaining_items):
                 item.update_index(index)
 

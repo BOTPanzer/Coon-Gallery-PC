@@ -1,30 +1,77 @@
 from util.link import Link
 from util.util import Util
 from os import listdir
-from os.path import  isfile, join
+from os.path import  isfile, join, exists, getmtime
 
 class Album:
 
     # Constructor
     def __init__(self, link: Link, filter: list):
-        # Save info
-        self.isValid = False
-        self.link = link
+        # Init info
+        self.album_path = link.album_path
+        self.metadata_path = link.metadata_path
         self.metadata = {}
-        self.items_with_metadata = []
-        self.items_without_metadata = []
-
-        # Check if link paths exist
-        if not link.isValid(): return
+        self.items = []
+        self.items_with_metadata = 0
+        self.items_without_metadata = 0
 
         # Load metadata
-        self.metadata = Util.load_json(link.metadata_path)
+        self.load_metadata()
+
+        # Load items
+        self.load_items(filter)
+
+    # Metadata
+    def load_metadata(self):
+        # Check if metadata path exist
+        if not exists(self.metadata_path): return
+
+        # Load metadata
+        self.metadata = Util.load_json(self.metadata_path)
+
+    def save_metadata(self):
+        # Check if metadata path exist
+        if not exists(self.metadata_path): return
+
+        # Load metadata
+        Util.save_json(self.metadata_path, self.metadata)
+
+    def has_metadata(self, item_name: str) -> bool:
+        # Check if item has metadata
+        return item_name in self.metadata
+
+    def sort_metadata(self):
+        # Create new metadata
+        new_metadata = {}
+
+        # Sort items
+        self.sort_items()
+
+        # Check each item to see if it has metadata
+        for item_name in self.items:
+            # Check if item has metadata
+            if self.has_metadata(item_name):
+                # Has metadata -> Add key to new metadata
+                new_metadata[item_name] = self.metadata[item_name]
+
+        # Replace old metadata with the new one
+        self.metadata = new_metadata
+
+    # Album
+    def load_items(self, filter: list):
+        # Check if album path exists
+        if not exists(self.album_path): return
+
+        # Reset items
+        self.items = []
+        self.items_with_metadata = 0
+        self.items_without_metadata = 0
 
         # Load album items
-        unfiltered_items = listdir(link.album_path)
+        unfiltered_items = listdir(self.album_path)
         for item_name in unfiltered_items:
             # Check if item is a file
-            if not isfile(join(link.album_path, item_name)): continue
+            if not isfile(join(self.album_path, item_name)): continue
 
             # Check if item has a valid format
             is_valid = False
@@ -34,11 +81,31 @@ class Album:
                     break
             if not is_valid: continue
 
-            # Check if item has metadata
-            if item_name in self.metadata:
-                self.items_with_metadata.append(item_name)
-            else:
-                self.items_without_metadata.append(item_name)
+            # Save item
+            self.items.append(item_name)
 
-        # Mark as valid
-        self.isValid = True
+            # Check if item has metadata
+            if self.has_metadata(item_name):
+                # Has metadata -> Increase "with" count
+                self.items_with_metadata += 1
+            else:
+                # No metadata -> Increase "without" count
+                self.items_without_metadata += 1
+
+    def sort_items(self): 
+        # Sort items by modified date (newest first)
+        self.items.sort(key=lambda image_name: getmtime(join(self.album_path, image_name)), reverse=True)
+
+    def refresh_items_stats(self):
+        # Reset item stats
+        self.items_with_metadata = 0
+        self.items_without_metadata = 0
+
+        # Check each item to see if it has metadata
+        for item_name in self.items:
+            if self.has_metadata(item_name):
+                # Has metadata -> Increase "with" count
+                self.items_with_metadata += 1
+            else:
+                # No metadata -> Increase "without" count
+                self.items_without_metadata += 1
