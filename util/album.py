@@ -7,7 +7,7 @@ from collections.abc import Callable
 class Album:
 
     # Constructor
-    def __init__(self, link: Link, filter: list):
+    def __init__(self, link: Link, filter: list[str]):
         # Init info
         self.album_path = link.album_path
         self.metadata_path = link.metadata_path
@@ -59,7 +59,7 @@ class Album:
         self.metadata = new_metadata
 
     # Album
-    def load_items(self, filter: list):
+    def load_items(self, filter: list[str]):
         # Check if album path exists
         if not exists(self.album_path): return
 

@@ -1,4 +1,4 @@
 class Filter:
 
     # Filters
-    images = ['.png', '.jpg', '.jpeg', '.webp']
+    images: list[str] = ['.png', '.jpg', '.jpeg', '.webp']
