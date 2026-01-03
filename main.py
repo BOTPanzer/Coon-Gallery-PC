@@ -19,7 +19,7 @@ class CoonGallery(App):
     #           | $$      | $$
     #           |__/      |__/
 
-    CSS_PATH = "styles.tcss"
+    CSS_PATH = os.path.join('styles', 'main.tcss')
 
     # Init
     def on_mount(self):
