@@ -15,5 +15,5 @@ env/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# App specific
-links.json
+# App data
+data/

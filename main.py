@@ -3,6 +3,7 @@ from util.util import Util
 from textual.app import App
 from screens.home.home import HomeScreen
 import pathlib
+import os
 
 class CoonGallery(App):
 
@@ -20,7 +21,8 @@ class CoonGallery(App):
 
     CSS_PATH = "styles.tcss"
 
-    def on_mount(self) -> None:
+    # Init
+    def on_mount(self):
         # Load links
         self.load_links()
 
@@ -37,12 +39,12 @@ class CoonGallery(App):
     # | $$$$$$$$| $$| $$  | $$| $$ \  $$ /$$$$$$$/
     # |________/|__/|__/  |__/|__/  \__/|_______/
 
-    linksPath = f"{pathlib.Path().resolve()}\\links.json"
+    linksPath = os.path.join(pathlib.Path().resolve(), 'data', 'links.json')
     links = []
 
     def load_links(self):
         # Load links save from file
-        save = Util.load_json(path=self.linksPath, default={})
+        save = Util.load_json(self.linksPath)
 
         # Parse save
         self.links = [ Link(item["album_path"], item["metadata_path"]) for item in save ]
@@ -52,7 +54,7 @@ class CoonGallery(App):
         save = [ { "album_path": l.album_path, "metadata_path": l.metadata_path} for l in self.links ]
 
         # Save links into file
-        Util.save_json(path=self.linksPath, data=save, pretty=True)
+        Util.save_json(self.linksPath, save, True)
 
     def add_link(self, link: Link) -> int:
         # Add link

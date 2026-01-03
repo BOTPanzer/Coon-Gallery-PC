@@ -11,9 +11,9 @@ class Util:
                 json.dump(data, f, ensure_ascii=False) # Uglyer but faster and smaller size
 
     @staticmethod
-    def load_json(path: str, default):
+    def load_json(path: str):
         try:
             with open(path, encoding='utf-8') as f:
                 return json.load(f)
         except:
-            return default
+            return {}

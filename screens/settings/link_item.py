@@ -5,24 +5,20 @@ from collections.abc import Callable
 
 class LinkItem(Static):
 
-    # Info
-    link = None
-    index = -1
-    removed = False
-
-    # Widgets
-    button_remove = None
-    input_album = None
-    input_metadata = None
-
-
     # Constructor
     def __init__(self, link: Link, index: int, on_modify: Callable[[], None], on_remove: Callable[[], None]):
         super().__init__()
+        # Save info
         self.link = link
         self.index = index
         self.on_modify = on_modify
         self.on_remove = on_remove
+
+        # Save widgets
+        self.button_remove = None
+        self.input_album = None
+        self.input_metadata = None
+
 
     # Widget
     def compose(self):

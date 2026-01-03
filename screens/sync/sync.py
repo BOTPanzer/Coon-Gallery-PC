@@ -6,7 +6,8 @@ class SyncScreen(Screen):
     # Info
     TITLE = 'Sync'
     
-    # Layout
+    
+    # Screen
     def compose(self):
         # Create layout
         yield Header()

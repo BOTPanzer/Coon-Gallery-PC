@@ -4,7 +4,6 @@ from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import VerticalScroll
 
-# Screen
 class SettingsScreen(Screen):
 
     # Info
