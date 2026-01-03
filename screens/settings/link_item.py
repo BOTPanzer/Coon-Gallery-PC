@@ -1,0 +1,59 @@
+from util.link import Link
+from textual.widgets import Static, Button, Input
+from textual.containers import Horizontal, Vertical
+from collections.abc import Callable
+
+class LinkItem(Static):
+
+    # Info
+    link = None
+    index = -1
+    removed = False
+
+    # Widgets
+    button_remove = None
+    input_album = None
+    input_metadata = None
+
+
+    # Constructor
+    def __init__(self, link: Link, index: int, on_modify: Callable[[], None], on_remove: Callable[[], None]):
+        super().__init__()
+        self.link = link
+        self.index = index
+        self.on_modify = on_modify
+        self.on_remove = on_remove
+
+    # Widget
+    def compose(self):
+        # Create widgets
+        self.button_remove = Button(id='remove-link', label=f'Remove {self.index}', variant='error')
+        self.input_album = Input(id='album', placeholder="Album folder path", value=self.link.album_path)
+        self.input_metadata = Input(id='metadata', placeholder='Metadata file path', value=self.link.metadata_path)
+
+        # Create layout
+        with Horizontal():
+            yield self.button_remove
+            with Vertical():
+                yield self.input_album
+                yield self.input_metadata
+
+    # Events
+    def on_button_pressed(self, event: Button.Pressed):
+        event.stop()            # Stop the event from bubbling up to the screen
+        self.removed = True     # Mark as removed
+        self.remove()           # Remove widget from UI
+        self.on_remove()        # Call on remove
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        match event.input.id:
+            case 'album':
+                self.link.album_path = event.value
+            case 'metadata':
+                self.link.metadata_path = event.value
+        self.on_modify()
+
+    # Updating index
+    def update_index(self, new_index: int):
+        self.index = new_index
+        self.button_remove.label = f'Remove {self.index}'
