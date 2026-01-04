@@ -57,7 +57,10 @@ class MetadataScreen(Screen):
 
     # Albums
     def load_albums(self):
-        # Items info
+        # Reset albums
+        self.albums = []
+
+        # Create items info
         items_with_metadata = 0
         items_without_metadata = 0
 
@@ -86,8 +89,8 @@ class MetadataScreen(Screen):
         self.toggleContent(True)
 
     def search(self):
-        # Create dialog event
-        def handle_result(value: str):
+        # Create result event
+        def on_result(value: str):
             # Check value
             if value.strip() == '': return
 
@@ -96,7 +99,7 @@ class MetadataScreen(Screen):
 
             # Start search
             self.log_message(f'Searching for "{value}"...')
-            
+
             # Create item found event
             def on_item_found(path):
                 nonlocal items_found
@@ -112,7 +115,7 @@ class MetadataScreen(Screen):
             self.log_message(f'Found {items_found} items')
 
         # Create dialog
-        self.app.push_screen(InputDialog(f'What do you wanna search?'), handle_result)
+        self.app.push_screen(InputDialog(f'What do you wanna search?'), on_result)
 
     # Logs
     def log_message(self, message: str) -> Label:

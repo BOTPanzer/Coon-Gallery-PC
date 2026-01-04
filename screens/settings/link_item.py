@@ -7,12 +7,14 @@ class LinkItem(Static):
 
     # Constructor
     def __init__(self, link: Link, index: int, on_modify: Callable[[], None], on_remove: Callable[["LinkItem"], None]):
-        super().__init__()
         # Init info
         self.link = link
         self.index = index
         self.on_modify = on_modify
         self.on_remove = on_remove
+
+        # Init parent
+        super().__init__()
 
     # Widget
     def compose(self):

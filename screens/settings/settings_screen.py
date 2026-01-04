@@ -51,8 +51,8 @@ class SettingsScreen(Screen):
         link_item.scroll_visible()
 
     def remove_link(self, link_item: LinkItem):
-        # Create dialog event
-        def handle_result(remove: bool):
+        # Create result event
+        def on_result(remove: bool):
             # Don't remove
             if not remove: return
 
@@ -66,4 +66,4 @@ class SettingsScreen(Screen):
                 item.update_index(index)
 
         # Create dialog
-        self.app.push_screen(ConfirmDialog(f'Are you sure you want to remove Link {link_item.index}?'), handle_result)
+        self.app.push_screen(ConfirmDialog(f'Are you sure you want to remove Link {link_item.index}?'), on_result)
