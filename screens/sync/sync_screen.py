@@ -19,7 +19,7 @@ class SyncScreen(Screen):
         yield Button(id='upload-metadata', label='Upload')
 
     # Events
-    def on_button_pressed(self, event):
+    def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
             case 'back':
                 self.app.pop_screen()

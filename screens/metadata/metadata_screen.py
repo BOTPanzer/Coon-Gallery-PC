@@ -15,7 +15,11 @@ class MetadataScreen(Screen):
     w_info = None
     w_logs = None
 
-    # Albums
+    # Logs
+    logs_count = 0
+
+    # Metadata
+    is_working = False
     albums: list[Album] = []
 
 
@@ -48,12 +52,32 @@ class MetadataScreen(Screen):
         self.w_content.visible = show
 
     # Events
-    def on_button_pressed(self, event):
+    async def on_button_pressed(self, event: Button.Pressed):
+        # Check if working
+        if self.is_working: return
+
+        # Check button
         match event.button.id:
             case 'back':
                 self.app.pop_screen()
             case 'search':
-                self.search()
+                await self.option_search()
+            case 'clean':
+                await self.option_clean()
+
+    # Logs
+    def log_message(self, message: str) -> Label:
+        # Create label
+        label = Label(message, classes='log_even' if self.logs_count % 2 == 0 else 'log_odd')
+        self.logs_count += 1
+
+        # Max logs
+        if len(self.w_logs.children) >= 1000: self.w_logs.children[0].remove()
+
+        # Add new log
+        self.w_logs.mount(label)
+        self.w_logs.scroll_end(animate=False)
+        return label
 
     # Albums
     def load_albums(self):
@@ -88,38 +112,66 @@ class MetadataScreen(Screen):
         self.log_message('Albums loaded succesfully')
         self.toggleContent(True)
 
-    def search(self):
+    # Options
+    def set_working(self, working):
+        self.is_working = working
+
+    async def option_search(self):
         # Create result event
         def on_result(value: str):
-            # Check value
+            # Check if canceled
             if value.strip() == '': return
 
-            # Create found items count
-            items_found = 0
+            # Check if value is long enough
+            if len(value) <3: 
+                self.log_message('Search must be at least 3 characters long')
+                return
 
-            # Start search
-            self.log_message(f'Searching for "{value}"...')
-
-            # Create item found event
-            def on_item_found(path):
-                nonlocal items_found
-                items_found += 1
-                self.log_message(path)
-
-            # Search albums
-            for album in self.albums:
-                # Search album
-                album.search(value, on_item_found)
-
-            # End search
-            self.log_message(f'Found {items_found} items')
+            # Execute in another thread to not block UI
+            self.run_worker(self.execute_option_search(value), thread=True)
 
         # Create dialog
         self.app.push_screen(InputDialog(f'What do you wanna search?'), on_result)
 
-    # Logs
-    def log_message(self, message: str) -> Label:
-        label = Label(message)
-        self.w_logs.mount(label)
-        label.scroll_visible()
-        return label
+    async def execute_option_search(self, value: str):
+        # Start search
+        self.app.call_from_thread(self.set_working, True)
+        self.app.call_from_thread(self.log_message, f'Searching for "{value}"...')
+
+        # Create found items count
+        items_found = 0
+
+        # Create item found event
+        def on_item_found(path):
+            nonlocal items_found
+            items_found += 1
+            self.app.call_from_thread(self.log_message, path)
+
+        # Search albums
+        for album in self.albums:
+            # Search album
+            album.search(value, on_item_found)
+
+        # Finish search
+        self.app.call_from_thread(self.log_message, f'Found {items_found} items')
+        self.app.call_from_thread(self.set_working, False)
+
+    async def option_clean(self):
+        # Execute in another thread to not block UI
+        self.run_worker(self.execute_option_clean, thread=True)
+
+    async def execute_option_clean(self):
+        # Start cleaning
+        self.app.call_from_thread(self.set_working, True)
+        self.app.call_from_thread(self.log_message, 'Cleaning albums...')
+
+        # Sort & save albums metadata
+        for index, album in enumerate(self.albums):
+            self.app.call_from_thread(self.log_message, f'Cleaning album {index}...')
+            album.sort_and_clean_metadata()
+            self.app.call_from_thread(self.log_message, f'Saving album {index}...')
+            album.save_metadata()
+
+        # Finish cleaning
+        self.app.call_from_thread(self.log_message, 'Finished cleaning albums')
+        self.app.call_from_thread(self.set_working, False)

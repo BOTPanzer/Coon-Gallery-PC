@@ -13,6 +13,16 @@ LinkItem {
     border: solid white;
 }
 
+/* Log zebra stripes */
+.log_even {
+    width: 100%;
+}
+
+.log_odd {
+    width: 100%;
+    background: $boost;
+}
+
 /* Dialogs */
 InputDialog,
 ConfirmDialog {

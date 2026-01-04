@@ -20,7 +20,7 @@ class HomeScreen(Screen):
         yield Button(id='sync', label='Sync')
 
     # Events
-    def on_button_pressed(self, event: Button.Pressed) -> None:
+    def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
             case 'exit':
                 self.app.exit()

@@ -3,6 +3,7 @@ from util.util import Util
 from os import listdir
 from os.path import  isfile, join, exists, getmtime
 from collections.abc import Callable
+import shutil
 
 class Album:
 
@@ -30,18 +31,28 @@ class Album:
         # Load metadata
         self.metadata = Util.load_json(self.metadata_path)
 
-    def save_metadata(self):
-        # Check if metadata path exist
-        if not exists(self.metadata_path): return
+    def save_metadata(self, backup: bool = True):
+        # Check if should backup
+        if backup and exists(self.metadata_path):
+            # Create new backup path
+            metadata_backup_path = ''
+            metadata_backup_index = 0
+            while True:
+                metadata_backup_path = self.metadata_path + '.backup' + str(metadata_backup_index)
+                if not exists(metadata_backup_path): break
+                metadata_backup_index += 1
 
-        # Load metadata
+            # Copy to backup path (copy2 preserves timestamps)
+            shutil.copy2(self.metadata_path, metadata_backup_path)
+
+        # Save metadata
         Util.save_json(self.metadata_path, self.metadata)
 
     def has_metadata(self, item_name: str) -> bool:
         # Check if item has metadata
         return item_name in self.metadata
 
-    def sort_metadata(self):
+    def sort_and_clean_metadata(self):
         # Create new metadata
         new_metadata = {}
 
