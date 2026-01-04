@@ -1,6 +1,7 @@
 from util.album import Album
 from util.filter import Filter
 from util.dialog_input import InputDialog
+from util.metadata import Metadata
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical, Horizontal, VerticalScroll
@@ -18,9 +19,11 @@ class MetadataScreen(Screen):
     # Logs
     logs_count = 0
 
-    # Metadata
-    is_working = False
+    # Albums
     albums: list[Album] = []
+
+    # Options
+    is_working = False
 
 
     # Init
@@ -63,6 +66,8 @@ class MetadataScreen(Screen):
                 await self.option_search()
             case 'clean':
                 await self.option_clean()
+            case 'fix':
+                await self.option_fix()
 
     # Logs
     def log_message(self, message: str) -> Label:
@@ -112,8 +117,9 @@ class MetadataScreen(Screen):
         self.toggleContent(True)
 
     # Options
-    def set_working(self, working):
+    def set_working(self, working, message):
         self.is_working = working
+        self.log_message(message)
 
     async def option_search(self):
         # Create result event
@@ -134,8 +140,7 @@ class MetadataScreen(Screen):
 
     async def execute_option_search(self, value: str):
         # Start search
-        self.app.call_from_thread(self.set_working, True)
-        self.app.call_from_thread(self.log_message, f'Searching for "{value}"...')
+        self.app.call_from_thread(self.set_working, True, f'Searching for "{value}"...')
 
         # Create found items count
         items_found = 0
@@ -152,8 +157,7 @@ class MetadataScreen(Screen):
             album.search(value, on_item_found)
 
         # Finish search
-        self.app.call_from_thread(self.log_message, f'Found {items_found} items')
-        self.app.call_from_thread(self.set_working, False)
+        self.app.call_from_thread(self.set_working, False, f'Found {items_found} items')
 
     async def option_clean(self):
         # Execute in another thread to not block UI
@@ -161,16 +165,77 @@ class MetadataScreen(Screen):
 
     async def execute_option_clean(self):
         # Start cleaning
-        self.app.call_from_thread(self.set_working, True)
-        self.app.call_from_thread(self.log_message, 'Cleaning albums...')
+        self.app.call_from_thread(self.set_working, True, 'Cleaning albums metadata...')
 
         # Sort & save albums metadata
-        for index, album in enumerate(self.albums):
-            self.app.call_from_thread(self.log_message, f'Cleaning album {index}...')
+        for album_index, album in enumerate(self.albums):
+            # Clean album metadata
+            self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning...')
             album.clean_metadata()
-            self.app.call_from_thread(self.log_message, f'Saving album {index}...')
+
+            # Save album metadata
+            self.app.call_from_thread(self.log_message, f'Album {album_index}: Saving...')
             album.save_metadata()
 
         # Finish cleaning
-        self.app.call_from_thread(self.log_message, 'Finished cleaning albums')
-        self.app.call_from_thread(self.set_working, False)
+        self.app.call_from_thread(self.set_working, False, 'Finished cleaning albums metadata')
+
+    async def option_fix(self):
+        # Execute in another thread to not block UI
+        self.run_worker(self.execute_option_fix, thread=True)
+
+    async def execute_option_fix(self): 
+        # Start fixing
+        self.app.call_from_thread(self.set_working, True, 'Fixing albums metadata...')
+
+        # Loop albums
+        for album_index, album in enumerate(self.albums):
+            self.app.call_from_thread(self.log_message, f'Album {album_index}: Checking...')
+            album_metadata_modified = False
+
+            # Loop album items
+            for item_name in album.items:
+                # Get metadata
+                item_metadata = album.get_item_metadata(item_name)
+                item_metadata_modified = False
+
+                # Check if metadata has caption
+                if not Metadata.has_valid_caption(item_metadata):
+                    # Generate caption
+                    self.app.call_from_thread(self.log_message, f'{item_name}: Generating caption...')
+
+                    # Mark item metadata as modified
+                    item_metadata_modified = True
+
+                # Check if metadata has labels
+                if not Metadata.valid_labels(item_metadata):
+                    # Generate labels
+                    self.app.call_from_thread(self.log_message, f'{item_name}: Generating labels...')
+
+                    # Mark item metadata as modified
+                    item_metadata_modified = True
+
+                # Check if metadata has text
+                if not Metadata.has_valid_text(item_metadata):
+                    # Generate text
+                    self.app.call_from_thread(self.log_message, f'{item_name}: Generating text...')
+
+                    # Mark item metadata as modified
+                    item_metadata_modified = True
+
+                # Check if item metadata was modified
+                if item_metadata_modified:
+                    # Save item metadata
+                    album.metadata[item_name] = item_metadata
+
+                    # Mark album metadata as modified
+                    album_metadata_modified = True
+
+            # Check if album metadata was modified
+            if album_metadata_modified:
+                # Save album metadata
+                self.app.call_from_thread(self.log_message, f'Album {album_index}: Saving...')
+                album.save_metadata()
+
+        # Finish fixing
+        self.app.call_from_thread(self.set_working, False, 'Finished fixing albums metadata')

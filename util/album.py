@@ -48,9 +48,16 @@ class Album:
         # Save metadata
         Util.save_json(self.metadata_path, self.metadata)
 
-    def has_metadata(self, item_name: str) -> bool:
+    def item_has_metadata(self, item_name: str) -> bool:
         # Check if item has metadata
         return item_name in self.metadata
+
+    def get_item_metadata(self, item_name) -> dict:
+        # Check if item has metadata
+        if self.item_has_metadata(item_name):
+            return self.metadata[item_name]
+        else:
+            return {}
 
     def clean_metadata(self):
         # Create new metadata
@@ -62,14 +69,14 @@ class Album:
         # Check each item to see if it has metadata
         for item_name in self.items:
             # Check if item has metadata
-            if self.has_metadata(item_name):
+            if self.item_has_metadata(item_name):
                 # Has metadata -> Add key to new metadata
                 new_metadata[item_name] = self.metadata[item_name]
 
         # Replace old metadata with the new one
         self.metadata = new_metadata
 
-    # Album
+    # Album items
     def load_items(self, filter: list[str]):
         # Check if album path exists
         if not exists(self.album_path): return
@@ -97,7 +104,7 @@ class Album:
             self.items.append(item_name)
 
             # Check if item has metadata
-            if self.has_metadata(item_name):
+            if self.item_has_metadata(item_name):
                 # Has metadata -> Increase "with" count
                 self.items_with_metadata += 1
             else:
@@ -115,7 +122,7 @@ class Album:
 
         # Check each item to see if it has metadata
         for item_name in self.items:
-            if self.has_metadata(item_name):
+            if self.item_has_metadata(item_name):
                 # Has metadata -> Increase "with" count
                 self.items_with_metadata += 1
             else:
@@ -129,10 +136,10 @@ class Album:
         # Search items
         for item_name in self.items:
             # Check if item has metadata
-            if not self.has_metadata(item_name): continue
+            if not self.item_has_metadata(item_name): continue
 
             # Get metadata key
-            item_metadata = self.metadata[item_name]
+            item_metadata = self.get_item_metadata[item_name]
 
             # Check if metadata contains search
             if (
