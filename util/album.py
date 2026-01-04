@@ -1,4 +1,5 @@
 from util.link import Link
+from util.metadata import Metadata
 from util.util import Util
 from os import listdir
 from os.path import  isfile, join, exists, getmtime
@@ -139,14 +140,14 @@ class Album:
             if not self.item_has_metadata(item_name): continue
 
             # Get metadata key
-            item_metadata = self.get_item_metadata[item_name]
+            item_metadata = self.get_item_metadata(item_name)
 
             # Check if metadata contains search
             if (
                 (search in item_name) or
-                ('caption' in item_metadata and search in item_metadata['caption'].lower()) or 
-                ('labels' in item_metadata and any(search in item.casefold() for item in item_metadata['labels'])) or 
-                ('text' in item_metadata and any(search in item.casefold() for item in item_metadata['text']))
+                (Metadata.has_valid_caption(item_metadata) and search in item_metadata['caption'].casefold()) or 
+                (Metadata.has_valid_labels(item_metadata) and any(search in item.casefold() for item in item_metadata['labels'])) or 
+                (Metadata.has_valid_text(item_metadata) and any(search in item.casefold() for item in item_metadata['text']))
             ): 
                 # Metadata contains search -> Call on result with item path
                 item_path = join(self.album_path, item_name)

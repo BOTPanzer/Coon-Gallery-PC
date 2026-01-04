@@ -6,7 +6,7 @@ class Metadata:
         return ('caption' in item_metadata) and (type(item_metadata['caption']) is str)
 
     @staticmethod
-    def valid_labels(item_metadata: dict) -> bool:
+    def has_valid_labels(item_metadata: dict) -> bool:
         # Check if item metadata has labels
         return ('labels' in item_metadata) and (type(item_metadata['labels']) is list)
 

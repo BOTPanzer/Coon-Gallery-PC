@@ -125,12 +125,16 @@ class MetadataScreen(Screen):
         # Create result event
         def on_result(value: str):
             # Check if canceled
-            if value.strip() == '': return
+            if value.strip() == '': 
+                return
 
             # Check if value is long enough
             if len(value) <3: 
                 self.log_message('Search must be at least 3 characters long')
                 return
+
+            # Start search
+            self.set_working(True, f'Searching for "{value}"...')
 
             # Execute in another thread to not block UI
             self.run_worker(self.execute_option_search(value), thread=True)
@@ -139,9 +143,6 @@ class MetadataScreen(Screen):
         self.app.push_screen(InputDialog(f'What do you wanna search?'), on_result)
 
     async def execute_option_search(self, value: str):
-        # Start search
-        self.app.call_from_thread(self.set_working, True, f'Searching for "{value}"...')
-
         # Create found items count
         items_found = 0
 
@@ -160,13 +161,13 @@ class MetadataScreen(Screen):
         self.app.call_from_thread(self.set_working, False, f'Found {items_found} items')
 
     async def option_clean(self):
+        # Start cleaning
+        self.set_working(True, 'Cleaning albums metadata...')
+
         # Execute in another thread to not block UI
         self.run_worker(self.execute_option_clean, thread=True)
 
     async def execute_option_clean(self):
-        # Start cleaning
-        self.app.call_from_thread(self.set_working, True, 'Cleaning albums metadata...')
-
         # Sort & save albums metadata
         for album_index, album in enumerate(self.albums):
             # Clean album metadata
@@ -181,13 +182,13 @@ class MetadataScreen(Screen):
         self.app.call_from_thread(self.set_working, False, 'Finished cleaning albums metadata')
 
     async def option_fix(self):
+        # Start fixing
+        self.set_working(True, 'Fixing albums metadata...')
+
         # Execute in another thread to not block UI
         self.run_worker(self.execute_option_fix, thread=True)
 
-    async def execute_option_fix(self): 
-        # Start fixing
-        self.app.call_from_thread(self.set_working, True, 'Fixing albums metadata...')
-
+    async def execute_option_fix(self):
         # Loop albums
         for album_index, album in enumerate(self.albums):
             self.app.call_from_thread(self.log_message, f'Album {album_index}: Checking...')
@@ -208,7 +209,7 @@ class MetadataScreen(Screen):
                     item_metadata_modified = True
 
                 # Check if metadata has labels
-                if not Metadata.valid_labels(item_metadata):
+                if not Metadata.has_valid_labels(item_metadata):
                     # Generate labels
                     self.app.call_from_thread(self.log_message, f'{item_name}: Generating labels...')
 
