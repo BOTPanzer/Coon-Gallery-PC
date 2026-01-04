@@ -2,7 +2,6 @@ from util.util import Util
 import numpy as np
 from PIL import Image
 import cv2
-import os
 
 # Image description model
 class DescriptionModel:
@@ -17,7 +16,7 @@ class DescriptionModel:
         self.torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 
         # Load model
-        model_path = os.path.join(Util.get_data_path(), 'florence2')
+        model_path = Util.join(Util.get_data_path(), 'florence2')
         self.model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=self.torch_dtype, trust_remote_code=True).to(self.device)
         self.processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
 

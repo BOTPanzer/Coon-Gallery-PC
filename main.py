@@ -2,7 +2,6 @@ from util.link import Link
 from util.util import Util
 from textual.app import App
 from screens.home.home_screen import HomeScreen
-import os
 
 class CoonGallery(App):
 
@@ -18,7 +17,7 @@ class CoonGallery(App):
     #           | $$      | $$
     #           |__/      |__/
 
-    CSS_PATH = os.path.join('styles', 'main.tcss')
+    CSS_PATH = Util.join('styles', 'main.tcss')
 
     # Init
     def on_mount(self):
@@ -38,7 +37,7 @@ class CoonGallery(App):
     # | $$$$$$$$| $$| $$  | $$| $$ \  $$ /$$$$$$$/
     # |________/|__/|__/  |__/|__/  \__/|_______/
 
-    linksPath = os.path.join(Util.get_data_path(), 'links.json')
+    linksPath = Util.join(Util.get_data_path(), 'links.json')
     links = []
 
     def load_links(self):

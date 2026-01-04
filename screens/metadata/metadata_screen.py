@@ -3,11 +3,11 @@ from util.filter import Filter
 from util.dialog_input import InputDialog
 from util.metadata import Metadata
 from util.ai import DescriptionModel, TextModel
+from util.util import Util
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical, Horizontal, VerticalScroll
 from PIL import Image
-import os
 
 class MetadataScreen(Screen):
 
@@ -231,7 +231,7 @@ class MetadataScreen(Screen):
             # Loop album items
             for item_name in album.items:
                 # Get info
-                item_path = os.path.join(album.album_path, item_name)
+                item_path = Util.join(album.album_path, item_name)
                 item_metadata = album.get_item_metadata(item_name)
                 item_metadata_modified = False
 

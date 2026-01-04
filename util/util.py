@@ -19,7 +19,11 @@ class Util:
                 return json.load(f)
         except:
             return {}
-        
+
+    @staticmethod
+    def join(p1, p2):
+        return os.path.join(p1, p2)
+
     @staticmethod
     def get_data_path():
-        return os.path.join(pathlib.Path().resolve(), 'data')
+        return Util.join(pathlib.Path().resolve(), 'data')
