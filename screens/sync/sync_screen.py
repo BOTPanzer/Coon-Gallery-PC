@@ -5,18 +5,18 @@ class SyncScreen(Screen):
 
     # Info
     TITLE = 'Sync'
-    
-    
+
+
     # Screen
     def compose(self):
         # Create layout
         yield Header()
-        yield Button(id='back', label='Back', variant='error')
+        yield Button(classes='menu_button', id='back', label='Back', variant='error')
         yield Label('Sync albums')
-        yield Button(id='download-albums', label='Download')
+        yield Button(classes='menu_button', id='download-albums', label='Download')
         yield Label('Sync metadata')
-        yield Button(id='download-metadata', label='Download')
-        yield Button(id='upload-metadata', label='Upload')
+        yield Button(classes='menu_button', id='download-metadata', label='Download')
+        yield Button(classes='menu_button', id='upload-metadata', label='Upload')
 
     # Events
     def on_button_pressed(self, event: Button.Pressed):

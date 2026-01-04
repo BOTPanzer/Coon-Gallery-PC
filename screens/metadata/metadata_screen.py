@@ -38,13 +38,12 @@ class MetadataScreen(Screen):
         yield Header()
         with Horizontal():
             with Vertical():
-                yield Button(id='back', label='Back', variant='error')
+                yield Button(classes='menu_button', id='back', label='Back', variant='error')
                 with self.w_content:
                     yield self.w_info
-                    yield Button(id='search', label='Search')
-                    yield Button(id='create', label='Create')
-                    yield Button(id='clean', label='Clean')
-                    yield Button(id='fix', label='Fix')
+                    yield Button(classes='menu_button', id='search', label='Search albums', tooltip='Searches for items whose metadata contains a specified input')
+                    yield Button(classes='menu_button', id='clean', label='Clean metadata', tooltip='Removes metadata keys whose file does not exist & sorts the remaining by modified date')
+                    yield Button(classes='menu_button', id='fix', label='Fix metadata', tooltip='Creates metadata for all missing files or fields')
             yield self.w_logs
 
     def toggleContent(self, show: bool):
@@ -168,7 +167,7 @@ class MetadataScreen(Screen):
         # Sort & save albums metadata
         for index, album in enumerate(self.albums):
             self.app.call_from_thread(self.log_message, f'Cleaning album {index}...')
-            album.sort_and_clean_metadata()
+            album.clean_metadata()
             self.app.call_from_thread(self.log_message, f'Saving album {index}...')
             album.save_metadata()
 

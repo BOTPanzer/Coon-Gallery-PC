@@ -1,5 +1,5 @@
 from textual.screen import Screen
-from textual.widgets import Header, Button, Label
+from textual.widgets import Header, Button
 from screens.settings.settings_screen import SettingsScreen
 from screens.sync.sync_screen import SyncScreen
 from screens.metadata.metadata_screen import MetadataScreen
@@ -14,10 +14,10 @@ class HomeScreen(Screen):
     def compose(self):
         # Create layout
         yield Header()
-        yield Button(id='exit', label='Exit', variant='error')
-        yield Button(id='settings', label='Settings')
-        yield Button(id='metadata', label='Metadata')
-        yield Button(id='sync', label='Sync')
+        yield Button(classes='menu_button', id='exit', label='Exit', variant='error')
+        yield Button(classes='menu_button', id='settings', label='Settings')
+        yield Button(classes='menu_button', id='metadata', label='Metadata')
+        yield Button(classes='menu_button', id='sync', label='Sync')
 
     # Events
     def on_button_pressed(self, event: Button.Pressed):

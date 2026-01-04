@@ -21,9 +21,9 @@ class SettingsScreen(Screen):
 
         # Create layout
         yield Header()
-        yield Button(id='back', label='Back', variant='error')
+        yield Button(classes='menu_button', id='back', label='Back', variant='error')
         yield Label(classes='box', content='Link are formed by an album folder and its metadata file\n· Add an album folder to enable backing it up\n· Add a metadata file to enable generating metadata for its album\n\nNote: Make sure you add links in the same order as in the phone app')
-        yield Button(id='add-link', label='Add link')
+        yield Button(classes='menu_button', id='add-link', label='Add link')
         with self.w_links:
             for index, link in enumerate(self.app.links):
                 yield self.create_link_item(index, link)

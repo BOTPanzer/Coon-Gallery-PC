@@ -1,3 +1,14 @@
+/* Box */
+.box {
+    padding: 1 2;
+    border: solid $foreground;
+}
+
+/* Buttons */
+.menu_button {
+    min-width: 30;
+}
+
 /* Links */
 LinkItem {
     height: 7;
@@ -5,12 +16,6 @@ LinkItem {
 
 #links-list {
     min-height: 9;
-}
-
-/* Box */
-.box {
-    padding: 1 2;
-    border: solid white;
 }
 
 /* Log zebra stripes */
@@ -36,7 +41,7 @@ ConfirmDialog {
     padding: 0 2;
     width: 40;
     height: 9;
-    border: tall white;
+    border: tall $foreground;
     background: $surface;
 }
 

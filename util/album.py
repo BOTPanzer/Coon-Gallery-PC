@@ -52,7 +52,7 @@ class Album:
         # Check if item has metadata
         return item_name in self.metadata
 
-    def sort_and_clean_metadata(self):
+    def clean_metadata(self):
         # Create new metadata
         new_metadata = {}
 
