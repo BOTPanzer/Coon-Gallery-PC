@@ -109,12 +109,16 @@ class MetadataScreen(Screen):
             items_without_metadata += album.items_without_metadata
             self.albums.append(album)
 
-        # Update info
-        self.w_info.content = f'· Items with metadata: {items_with_metadata}\n· Items without metadata: {items_without_metadata}'
+        # Update albums info
+        self.update_albums_info(items_with_metadata, items_without_metadata)
 
         # Notify & show content
         self.log_message('Albums loaded succesfully')
         self.toggleContent(True)
+
+    def update_albums_info(self, items_with_metadata, items_without_metadata):
+        # Update info text
+        self.w_info.content = f'· Items with metadata: {items_with_metadata}\n· Items without metadata: {items_without_metadata}'
 
     # Options
     def set_working(self, working, message):
@@ -189,9 +193,14 @@ class MetadataScreen(Screen):
         self.run_worker(self.execute_option_fix, thread=True)
 
     async def execute_option_fix(self):
+        # Stats
+        items_total = 0
+        items_fixed = 0
+
         # Loop albums
         for album_index, album in enumerate(self.albums):
             self.app.call_from_thread(self.log_message, f'Album {album_index}: Checking...')
+            items_total += len(album.items)
             album_metadata_modified = False
 
             # Loop album items
@@ -229,6 +238,9 @@ class MetadataScreen(Screen):
                     # Save item metadata
                     album.metadata[item_name] = item_metadata
 
+                    # Mark item as fixed
+                    items_fixed += 1
+
                     # Mark album metadata as modified
                     album_metadata_modified = True
 
@@ -238,5 +250,8 @@ class MetadataScreen(Screen):
                 self.app.call_from_thread(self.log_message, f'Album {album_index}: Saving...')
                 album.save_metadata()
 
+        # Update albums info
+        self.update_albums_info(items_total, 0)
+
         # Finish fixing
-        self.app.call_from_thread(self.set_working, False, 'Finished fixing albums metadata')
+        self.app.call_from_thread(self.set_working, False, f'Finished fixing albums metadata (fixed {items_fixed})')
