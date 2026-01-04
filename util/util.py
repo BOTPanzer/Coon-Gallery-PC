@@ -1,4 +1,6 @@
 import json
+import pathlib
+import os
 
 class Util:
 
@@ -17,3 +19,7 @@ class Util:
                 return json.load(f)
         except:
             return {}
+        
+    @staticmethod
+    def get_data_path():
+        return os.path.join(pathlib.Path().resolve(), 'data')

@@ -2,7 +2,6 @@ from util.link import Link
 from util.util import Util
 from textual.app import App
 from screens.home.home_screen import HomeScreen
-import pathlib
 import os
 
 class CoonGallery(App):
@@ -39,7 +38,7 @@ class CoonGallery(App):
     # | $$$$$$$$| $$| $$  | $$| $$ \  $$ /$$$$$$$/
     # |________/|__/|__/  |__/|__/  \__/|_______/
 
-    linksPath = os.path.join(pathlib.Path().resolve(), 'data', 'links.json')
+    linksPath = os.path.join(Util.get_data_path(), 'links.json')
     links = []
 
     def load_links(self):
