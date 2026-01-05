@@ -40,8 +40,8 @@ class CoonGallery(App):
     # | $$$$$$$$| $$| $$  | $$| $$ \  $$ /$$$$$$$/
     # |________/|__/|__/  |__/|__/  \__/|_______/
 
-    linksPath = Util.join(Util.get_data_path(), 'links.json')
-    links = []
+    linksPath: str = Util.join(Util.get_data_path(), 'links.json')
+    links: list[Link] = []
 
     def load_links(self):
         # Load links save from file
