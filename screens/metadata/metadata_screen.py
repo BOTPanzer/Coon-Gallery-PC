@@ -4,7 +4,7 @@ from util.ai import DescriptionModel, TextModel
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical, Horizontal, VerticalScroll
-from PIL import Image
+from PIL import Image, ImageFile
 
 class MetadataScreen(Screen):
 
@@ -28,6 +28,7 @@ class MetadataScreen(Screen):
 
     # Init
     def on_mount(self):
+        # Load albums
         self.load_albums()
 
     # Screen
@@ -89,8 +90,8 @@ class MetadataScreen(Screen):
         self.albums = []
 
         # Create items info
-        items_with_metadata = 0
-        items_without_metadata = 0
+        items_with_metadata: int = 0
+        items_without_metadata: int = 0
 
         # Create albums from links
         for link in self.app.links:
@@ -144,11 +145,11 @@ class MetadataScreen(Screen):
             self.run_worker(self.execute_option_search(value), thread=True)
 
         # Create dialog
-        self.app.push_screen(InputDialog(f'What do you wanna search?'), on_result)
+        self.app.push_screen(InputDialog(placeholder=f'What do you wanna search?'), on_result)
 
     async def execute_option_search(self, value: str):
         # Create found items count
-        items_found = 0
+        items_found: int = 0
 
         # Create item found event
         def on_item_found(path):
@@ -172,14 +173,12 @@ class MetadataScreen(Screen):
         self.run_worker(self.execute_option_clean, thread=True)
 
     async def execute_option_clean(self):
-        # Sort & save albums metadata
+        # Clean & save albums metadata
+        album: Album
         for album_index, album in enumerate(self.albums):
-            # Clean album metadata
-            self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning...')
+            # Clean & save album metadata
+            self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning & saving...')
             album.clean_metadata()
-
-            # Save album metadata
-            self.app.call_from_thread(self.log_message, f'Album {album_index}: Saving...')
             album.save_metadata()
 
         # Finish cleaning
@@ -194,12 +193,15 @@ class MetadataScreen(Screen):
 
     async def execute_option_fix(self):
         # Stats
-        items_total = 0
-        items_fixed = 0
+        total_items_count: int = 0
+        total_items_fixed: int = 0
+
+        # Saving
+        save_every: int = 5
 
         # Models
-        description_model = None
-        text_model = None
+        description_model: DescriptionModel = None
+        text_model: TextModel = None
 
         def init_description_model():
             # Check if is init
@@ -220,91 +222,98 @@ class MetadataScreen(Screen):
             text_model = TextModel()
 
         # Loop albums
+        album: Album
         for album_index, album in enumerate(self.albums):
             self.app.call_from_thread(self.log_message, f'Album {album_index}: Checking...')
-            items_total += len(album.items)
-            album_metadata_modified = False
+
+            # Stats
+            album_items_count: int = len(album.items)
+            album_items_fixed: int = 0
+            total_items_count += album_items_count
+
+            # Saving
+            was_album_modified: bool = False
+            was_album_saved: bool = False
 
             # Loop album items
             item: Item
-            for item in album.items:
-                # Get info
-                item_metadata = album.get_item_metadata(item.name)
-                item_metadata_modified = False
+            for item_index, item in enumerate(album.items):
+                # Metadata
+                was_item_modified: bool = False
+                item_metadata: dict = album.get_item_metadata(item.name)
 
-                # Image
-                item_image = None
+                # Check if item needs fixing
+                fix_caption: bool = not Metadata.has_valid_caption(item_metadata)
+                fix_labels: bool = not Metadata.has_valid_labels(item_metadata)
+                fix_text: bool = not Metadata.has_valid_text(item_metadata)
 
-                def init_item_image():
-                    # Check if is init
-                    nonlocal item_image
-                    if item_image != None: return
+                if not fix_caption and not fix_labels and not fix_text: continue
 
-                    # Load
-                    item_image = Image.open(item.path)
+                # Load image
+                item_image: ImageFile = Image.open(item.path)
 
-                # Check if metadata has caption
-                if not Metadata.has_valid_caption(item_metadata):
-                    # Make sure description model & image are init
+                # Check if description model is needed
+                if fix_caption or fix_labels:
+                    # Is needed -> Make sure its init
                     init_description_model()
-                    init_item_image()
 
-                    # Generate caption
-                    self.app.call_from_thread(self.log_message, f'{item.name}: Generating caption...')
-                    item_metadata['caption'] = description_model.generate_caption(item_image)
+                    # Fix caption
+                    if fix_caption:
+                        # Generate caption
+                        self.app.call_from_thread(self.log_message, f'{item.name}: Generating caption...')
+                        item_metadata['caption'] = description_model.generate_caption(item_image)
 
-                    # Mark item metadata as modified
-                    item_metadata_modified = True
+                    # Fix labels
+                    if fix_labels:
+                        # Generate labels
+                        self.app.call_from_thread(self.log_message, f'{item.name}: Generating labels...')
+                        item_metadata['labels'] = description_model.generate_labels(item_image)
 
-                # Check if metadata has labels
-                if not Metadata.has_valid_labels(item_metadata):
-                    # Make sure description model & image are init
-                    init_description_model()
-                    init_item_image()
+                    # Mark item as modified
+                    was_item_modified = True
 
-                    # Generate labels
-                    self.app.call_from_thread(self.log_message, f'{item.name}: Generating labels...')
-                    item_metadata['labels'] = description_model.generate_labels(item_image)
-
-                    # Mark item metadata as modified
-                    item_metadata_modified = True
-
-                # Check if metadata has text
-                if not Metadata.has_valid_text(item_metadata):
-                    # Make sure text model & image are init
+                # Check if text model is needed
+                if fix_text:
+                    # Is needed -> Make sure its init
                     init_text_model()
-                    init_item_image()
 
                     # Generate text
                     self.app.call_from_thread(self.log_message, f'{item.name}: Generating text...')
                     item_metadata['text'] = text_model.detect_text(item_image)
 
-                    # Mark item metadata as modified
-                    item_metadata_modified = True
+                    # Mark item as modified
+                    was_item_modified = True
 
-                # Check if item metadata was modified
-                if item_metadata_modified:
-                    # Save item metadata
+                # Check if item was modified
+                if was_item_modified:
+                    # Update item metadata
                     album.set_item_metadata(item.name, item_metadata)
 
                     # Mark item as fixed
-                    items_fixed += 1
+                    album_items_fixed += 1
+                    total_items_fixed += 1
 
-                    # Mark album metadata as modified
-                    album_metadata_modified = True
+                    # Mark album as modified
+                    was_album_modified = True
 
-            # Check if album metadata was modified
-            if album_metadata_modified:
-                # Clean album metadata
-                self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning...')
+                    # Save every x items and if item isn't the last of the album
+                    if (album_items_fixed % save_every == 0) and (item_index < album_items_count - 1):
+                        # Save album metadata
+                        self.app.call_from_thread(self.log_message, f'Album {album_index}: Saving (fast save)...')
+                        album.save_metadata(backup=not was_album_saved) # Create backup only first save
+
+                        # Mark album as saved
+                        was_album_saved = True
+
+            # Check if album was modified
+            if was_album_modified:
+                # Clean & save album metadata
+                self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning & saving...')
                 album.clean_metadata() # Cleaning sorts the keys too
-
-                # Save album metadata
-                self.app.call_from_thread(self.log_message, f'Album {album_index}: Saving...')
-                album.save_metadata()
+                album.save_metadata(backup=not was_album_saved) # Create backup only first save
 
         # Update albums info
-        self.update_albums_info(items_total, 0)
+        self.update_albums_info(total_items_count, 0)
 
         # Finish fixing
-        self.app.call_from_thread(self.set_working, False, f'Finished fixing albums metadata (fixed {items_fixed})')
+        self.app.call_from_thread(self.set_working, False, f'Finished fixing albums metadata (fixed {total_items_fixed})')

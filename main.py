@@ -21,6 +21,9 @@ class CoonGallery(App):
 
     # Init
     def on_mount(self):
+        # Use rose-pine as default theme
+        self.theme = "rose-pine"
+
         # Load links
         self.load_links()
 

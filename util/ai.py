@@ -1,6 +1,6 @@
 from util.util import Util
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFile
 import cv2
 
 # Description generation model
@@ -20,7 +20,7 @@ class DescriptionModel:
         self.model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=self.torch_dtype, trust_remote_code=True).to(self.device)
         self.processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
 
-    def run(self, image: Image, prompt: str) -> str:
+    def run(self, image: ImageFile, prompt: str) -> str:
         # Run prompt
         inputs = self.processor(text=prompt, images=image, return_tensors='pt').to(self.device, self.torch_dtype)
         generated_ids = self.model.generate(
@@ -33,10 +33,10 @@ class DescriptionModel:
         parsed_answer = self.processor.post_process_generation(generated_text, task=prompt, image_size=(image.width, image.height))
         return parsed_answer[prompt]
 
-    def generate_caption(self, image: Image) -> str:
+    def generate_caption(self, image: ImageFile) -> str:
         return self.run(image, '<MORE_DETAILED_CAPTION>').strip() # <CAPTION> <DETAILED_CAPTION>
 
-    def generate_labels(self, image: Image) -> list:
+    def generate_labels(self, image: ImageFile) -> list:
         return list(set(self.run(image, '<OD>')['labels'])) # list(set()) removes 
 
 # Text detection model
@@ -50,7 +50,7 @@ class TextModel:
         # Load model
         self.model = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False, show_log=False)
 
-    def detect_text(self, image: Image):
+    def detect_text(self, image: ImageFile):
         # Detect text in image
         numpy_image = np.array(image.convert('RGB'))
         numpy_image_cv2 = cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR) # Convert to BGR

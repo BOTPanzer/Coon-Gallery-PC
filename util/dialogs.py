@@ -4,7 +4,7 @@ from textual.widgets import Button, Label, Input
 
 # Alert dialog
 class ConfirmDialog(ModalScreen[bool]):
-    
+
     # Init
     def __init__(self, title: str = "Are you sure?"):
         self.title_text = title
@@ -26,16 +26,17 @@ class ConfirmDialog(ModalScreen[bool]):
 
 # Text input dialog
 class InputDialog(ModalScreen[str]):
-    
+
     # Init
-    def __init__(self, placeholder: str = "Type here"):
+    def __init__(self, placeholder: str = "Type here", value: str = ""):
         self.placeholder_text = placeholder
+        self.value_text = value
         super().__init__()
 
     # Widget
     def compose(self):
         # Create widgets
-        self.w_input = Input(placeholder=self.placeholder_text)
+        self.w_input = Input(placeholder=self.placeholder_text, value=self.value_text)
 
         # Create layout
         with Grid(id="dialog"):
