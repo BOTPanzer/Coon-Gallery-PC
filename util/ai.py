@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 import cv2
 
-# Image description model
+# Description generation model
 class DescriptionModel:
 
     def __init__(self):

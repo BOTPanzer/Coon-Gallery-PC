@@ -1,5 +1,5 @@
 from util.link import Link
-from util.dialog_confirm import ConfirmDialog
+from util.dialogs import ConfirmDialog
 from screens.settings.link_item import LinkItem
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label

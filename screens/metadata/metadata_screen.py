@@ -1,7 +1,5 @@
-from util.album import Album, AlbumItem
-from util.filter import Filter
-from util.dialog_input import InputDialog
-from util.metadata import Metadata
+from util.metadata import Metadata, Album, Item, Filter
+from util.dialogs import InputDialog
 from util.ai import DescriptionModel, TextModel
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
@@ -99,7 +97,7 @@ class MetadataScreen(Screen):
             # Check if link is valid
             if not link.isValid(): 
                 # Not valid -> Notify & hide content
-                self.log_message('Failed to load albums (please check all links have existing paths)')
+                self.log_message('Failed to load albums (please check all links in settings have existing paths)')
                 self.toggleContent(False)
                 return
 
@@ -228,7 +226,7 @@ class MetadataScreen(Screen):
             album_metadata_modified = False
 
             # Loop album items
-            item: AlbumItem
+            item: Item
             for item in album.items:
                 # Get info
                 item_metadata = album.get_item_metadata(item.name)
