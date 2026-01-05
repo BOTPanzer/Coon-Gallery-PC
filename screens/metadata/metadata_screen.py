@@ -1,9 +1,8 @@
-from util.album import Album
+from util.album import Album, AlbumItem
 from util.filter import Filter
 from util.dialog_input import InputDialog
 from util.metadata import Metadata
 from util.ai import DescriptionModel, TextModel
-from util.util import Util
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical, Horizontal, VerticalScroll
@@ -229,10 +228,10 @@ class MetadataScreen(Screen):
             album_metadata_modified = False
 
             # Loop album items
-            for item_name in album.items:
+            item: AlbumItem
+            for item in album.items:
                 # Get info
-                item_path = Util.join(album.album_path, item_name)
-                item_metadata = album.get_item_metadata(item_name)
+                item_metadata = album.get_item_metadata(item.name)
                 item_metadata_modified = False
 
                 # Image
@@ -244,7 +243,7 @@ class MetadataScreen(Screen):
                     if item_image != None: return
 
                     # Load
-                    item_image = Image.open(item_path)
+                    item_image = Image.open(item.path)
 
                 # Check if metadata has caption
                 if not Metadata.has_valid_caption(item_metadata):
@@ -253,7 +252,7 @@ class MetadataScreen(Screen):
                     init_item_image()
 
                     # Generate caption
-                    self.app.call_from_thread(self.log_message, f'{item_name}: Generating caption...')
+                    self.app.call_from_thread(self.log_message, f'{item.name}: Generating caption...')
                     item_metadata['caption'] = description_model.generate_caption(item_image)
 
                     # Mark item metadata as modified
@@ -266,7 +265,7 @@ class MetadataScreen(Screen):
                     init_item_image()
 
                     # Generate labels
-                    self.app.call_from_thread(self.log_message, f'{item_name}: Generating labels...')
+                    self.app.call_from_thread(self.log_message, f'{item.name}: Generating labels...')
                     item_metadata['labels'] = description_model.generate_labels(item_image)
 
                     # Mark item metadata as modified
@@ -279,7 +278,7 @@ class MetadataScreen(Screen):
                     init_item_image()
 
                     # Generate text
-                    self.app.call_from_thread(self.log_message, f'{item_name}: Generating text...')
+                    self.app.call_from_thread(self.log_message, f'{item.name}: Generating text...')
                     item_metadata['text'] = text_model.detect_text(item_image)
 
                     # Mark item metadata as modified
@@ -288,7 +287,7 @@ class MetadataScreen(Screen):
                 # Check if item metadata was modified
                 if item_metadata_modified:
                     # Save item metadata
-                    album.metadata[item_name] = item_metadata
+                    album.set_item_metadata(item.name, item_metadata)
 
                     # Mark item as fixed
                     items_fixed += 1
@@ -298,6 +297,10 @@ class MetadataScreen(Screen):
 
             # Check if album metadata was modified
             if album_metadata_modified:
+                # Clean album metadata
+                self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning...')
+                album.clean_metadata() # Cleaning sorts the keys too
+
                 # Save album metadata
                 self.app.call_from_thread(self.log_message, f'Album {album_index}: Saving...')
                 album.save_metadata()

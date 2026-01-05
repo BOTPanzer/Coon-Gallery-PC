@@ -8,8 +8,8 @@ class DescriptionModel:
 
     def __init__(self):
         # Import libraries
-        from transformers import AutoProcessor, AutoModelForCausalLM
         import torch
+        from transformers import AutoProcessor, AutoModelForCausalLM
 
         # Select device
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -31,23 +31,21 @@ class DescriptionModel:
         )
         generated_text = self.processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
         parsed_answer = self.processor.post_process_generation(generated_text, task=prompt, image_size=(image.width, image.height))
-        return parsed_answer
+        return parsed_answer[prompt]
 
     def generate_caption(self, image: Image) -> str:
-        prompt = '<MORE_DETAILED_CAPTION>' # <CAPTION> <DETAILED_CAPTION>
-        return self.run(image, prompt)[prompt].strip()
+        return self.run(image, '<MORE_DETAILED_CAPTION>').strip() # <CAPTION> <DETAILED_CAPTION>
 
     def generate_labels(self, image: Image) -> list:
-        prompt = '<OD>'
-        return list(set(self.run(image, prompt)[prompt]['labels'])) # list(set()) removes duplicates
+        return list(set(self.run(image, '<OD>')['labels'])) # list(set()) removes 
 
 # Text detection model
 class TextModel:
 
     def __init__(self):
         # Import libraries
-        from paddleocr import PaddleOCR # pip install paddlepaddle paddleocr
         import torch
+        from paddleocr import PaddleOCR # pip install paddlepaddle paddleocr
 
         # Load model
         self.model = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False, show_log=False)
@@ -57,4 +55,13 @@ class TextModel:
         numpy_image = np.array(image.convert('RGB'))
         numpy_image_cv2 = cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR) # Convert to BGR
         result = self.model.ocr(numpy_image_cv2, cls=True)
-        return result
+        texts = []
+        for result in result:
+            if result == None: continue
+            for region in result:
+                textAndConfidence = region[1] # [0] = text, [1] = confidence
+                text = textAndConfidence[0].strip()
+                confidence = textAndConfidence[1]
+                if confidence > 0.5:
+                    texts.append(text)
+        return texts

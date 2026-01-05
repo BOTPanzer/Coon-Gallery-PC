@@ -2,21 +2,22 @@ from util.link import Link
 from util.metadata import Metadata
 from util.util import Util
 from os import listdir
-from os.path import  isfile, join, exists, getmtime
+from os.path import  isfile, exists, getmtime
 from collections.abc import Callable
 import shutil
 
+# Albums
 class Album:
 
     # Constructor
     def __init__(self, link: Link, filter: list[str]):
         # Init info
-        self.album_path = link.album_path
-        self.metadata_path = link.metadata_path
-        self.metadata = {}
-        self.items = []
-        self.items_with_metadata = 0
-        self.items_without_metadata = 0
+        self.album_path: str = link.album_path
+        self.metadata_path: str = link.metadata_path
+        self.metadata: dict = {}
+        self.items: list[AlbumItem] = []
+        self.items_with_metadata: int = 0
+        self.items_without_metadata: int = 0
 
         # Load metadata
         self.load_metadata()
@@ -53,12 +54,16 @@ class Album:
         # Check if item has metadata
         return item_name in self.metadata
 
-    def get_item_metadata(self, item_name) -> dict:
+    def get_item_metadata(self, item_name: str) -> dict:
         # Check if item has metadata
         if self.item_has_metadata(item_name):
             return self.metadata[item_name]
         else:
             return {}
+
+    def set_item_metadata(self, item_name: str, item_metadata: dict):
+        # Update item metadata
+        self.metadata[item_name] = item_metadata
 
     def clean_metadata(self):
         # Create new metadata
@@ -68,11 +73,12 @@ class Album:
         self.sort_items()
 
         # Check each item to see if it has metadata
-        for item_name in self.items:
+        item: AlbumItem
+        for item in self.items:
             # Check if item has metadata
-            if self.item_has_metadata(item_name):
+            if self.item_has_metadata(item.name):
                 # Has metadata -> Add key to new metadata
-                new_metadata[item_name] = self.metadata[item_name]
+                new_metadata[item.name] = self.metadata[item.name]
 
         # Replace old metadata with the new one
         self.metadata = new_metadata
@@ -83,15 +89,18 @@ class Album:
         if not exists(self.album_path): return
 
         # Reset items
-        self.items = []
-        self.items_with_metadata = 0
-        self.items_without_metadata = 0
+        self.items: list = []
+        self.items_with_metadata: int = 0
+        self.items_without_metadata: int = 0
 
         # Load album items
         unfiltered_items = listdir(self.album_path)
         for item_name in unfiltered_items:
+            # Create item path
+            item_path = Util.join(self.album_path, item_name)
+
             # Check if item is a file
-            if not isfile(join(self.album_path, item_name)): continue
+            if not isfile(item_path): continue
 
             # Check if item has a valid format
             is_valid = False
@@ -102,7 +111,7 @@ class Album:
             if not is_valid: continue
 
             # Save item
-            self.items.append(item_name)
+            self.items.append(AlbumItem(item_path, item_name))
 
             # Check if item has metadata
             if self.item_has_metadata(item_name):
@@ -114,7 +123,7 @@ class Album:
 
     def sort_items(self): 
         # Sort items by modified date (newest first)
-        self.items.sort(key=lambda image_name: getmtime(join(self.album_path, image_name)), reverse=True)
+        self.items.sort(key=lambda item: getmtime(item.path), reverse=True)
 
     def refresh_items_stats(self):
         # Reset item stats
@@ -122,8 +131,9 @@ class Album:
         self.items_without_metadata = 0
 
         # Check each item to see if it has metadata
-        for item_name in self.items:
-            if self.item_has_metadata(item_name):
+        item: AlbumItem
+        for item in self.items:
+            if self.item_has_metadata(item.name):
                 # Has metadata -> Increase "with" count
                 self.items_with_metadata += 1
             else:
@@ -135,20 +145,29 @@ class Album:
         search = search.casefold()
 
         # Search items
-        for item_name in self.items:
+        item: AlbumItem
+        for item in self.items:
             # Check if item has metadata
-            if not self.item_has_metadata(item_name): continue
+            if not self.item_has_metadata(item.name): continue
 
             # Get metadata key
-            item_metadata = self.get_item_metadata(item_name)
+            item_metadata = self.get_item_metadata(item.name)
 
             # Check if metadata contains search
             if (
-                (search in item_name) or
+                (search in item.name) or
                 (Metadata.has_valid_caption(item_metadata) and search in item_metadata['caption'].casefold()) or 
                 (Metadata.has_valid_labels(item_metadata) and any(search in item.casefold() for item in item_metadata['labels'])) or 
                 (Metadata.has_valid_text(item_metadata) and any(search in item.casefold() for item in item_metadata['text']))
             ): 
                 # Metadata contains search -> Call on result with item path
-                item_path = join(self.album_path, item_name)
-                on_result(item_path)
+                on_result(item.path)
+
+# Album items
+class AlbumItem:
+
+    # Constructor
+    def __init__(self, path, name: str):
+        # Init info
+        self.path = path
+        self.name = name
