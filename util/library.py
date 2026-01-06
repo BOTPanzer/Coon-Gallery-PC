@@ -1,12 +1,24 @@
-from util.link import Link
 from util.util import Util
 from os import listdir
 from os.path import  isfile, exists, getmtime
 from collections.abc import Callable
 import shutil
 
-# Metadata helpers
-class Metadata:
+# Link
+class Link:
+
+    # Constructor
+    def __init__(self, album_path: str = "", metadata_path: str = ""):
+        # Save info
+        self.album_path = album_path
+        self.metadata_path = metadata_path
+
+    # Validate
+    def isValid(self) -> bool:
+        return exists(self.album_path) and exists(self.metadata_path)
+
+# Metadata util
+class MetadataUtil:
 
     @staticmethod
     def has_valid_caption(item_metadata: dict) -> bool:
@@ -22,6 +34,23 @@ class Metadata:
     def has_valid_text(item_metadata: dict) -> bool:
         # Check if item metadata has text
         return ('text' in item_metadata) and (type(item_metadata['text']) is list)
+
+# Album items
+class Item:
+
+    # Constructor
+    def __init__(self, path: str, name: str):
+        # Init info
+        self.path = path
+        self.name = name
+
+# Album filters
+class Filter:
+
+    # Filters
+    images: list[str] = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.heic', '.heif', '.avif']
+    videos: list[str] = ['.mp4', '.mkv', '.mov', '.webm', '.3gp']
+    all: list[str] = images + videos
 
 # Albums
 class Album:
@@ -173,24 +202,72 @@ class Album:
             # Check if metadata contains search
             if (
                 (search in item.name) or
-                (Metadata.has_valid_caption(item_metadata) and search in item_metadata['caption'].casefold()) or 
-                (Metadata.has_valid_labels(item_metadata) and any(search in item.casefold() for item in item_metadata['labels'])) or 
-                (Metadata.has_valid_text(item_metadata) and any(search in item.casefold() for item in item_metadata['text']))
+                (MetadataUtil.has_valid_caption(item_metadata) and search in item_metadata['caption'].casefold()) or 
+                (MetadataUtil.has_valid_labels(item_metadata) and any(search in item.casefold() for item in item_metadata['labels'])) or 
+                (MetadataUtil.has_valid_text(item_metadata) and any(search in item.casefold() for item in item_metadata['text']))
             ): 
                 # Metadata contains search -> Call on result with item path
                 on_result(item.path)
 
-# Items
-class Item:
+# Library
+class Library:
 
-    # Constructor
-    def __init__(self, path: str, name: str):
-        # Init info
-        self.path = path
-        self.name = name
+    # Links
+    linksPath: str = Util.join(Util.get_data_path(), 'links.json')
+    links: list[Link] = []
 
-# Album filters
-class Filter:
+    @staticmethod
+    def load_links():
+        # Load links save from file
+        save = Util.load_json(Library.linksPath)
 
-    # Filters
-    images: list[str] = ['.png', '.jpg', '.jpeg', '.webp']
+        # Parse save
+        Library.links = [ Link(item["album_path"], item["metadata_path"]) for item in save ]
+
+    @staticmethod
+    def save_links():
+        # Create links save
+        save = [ { "album_path": l.album_path, "metadata_path": l.metadata_path } for l in Library.links ]
+
+        # Save links into file
+        Util.save_json(Library.linksPath, save, True)
+
+    @staticmethod
+    def add_link(link: Link) -> int:
+        # Add link
+        Library.links.append(link)
+
+        # Save links
+        Library.save_links()
+
+        # Return last index
+        return len(Library.links) - 1
+
+    @staticmethod
+    def remove_link(link: Link):
+        # Remove link
+        Library.links.remove(link)
+
+        # Save links
+        Library.save_links()
+
+    # Albums
+    albums: list[Album] = []
+
+    def load_albums(filter: list[str] = Filter.all) -> bool:
+        # Reset albums
+        Library.albums = []
+
+        # Create albums from links
+        for link in Library.links:
+            # Check if link is valid
+            if not link.isValid(): 
+                # Not valid -> Stop loading
+                return False
+
+            # Create & add album
+            album = Album(link, filter)
+            Library.albums.append(album)
+
+        # Finish loading
+        return True

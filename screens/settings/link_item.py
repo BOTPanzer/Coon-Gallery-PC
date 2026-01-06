@@ -1,4 +1,4 @@
-from util.link import Link
+from util.library import Link
 from textual.widgets import Static, Label, Button, Input
 from textual.containers import Horizontal, Vertical
 from collections.abc import Callable
@@ -8,10 +8,10 @@ class LinkItem(Static):
     # Constructor
     def __init__(self, link: Link, index: int, on_modify: Callable[[], None], on_remove: Callable[["LinkItem"], None]):
         # Init info
-        self.link = link
-        self.index = index
-        self.on_modify = on_modify
-        self.on_remove = on_remove
+        self.link: Link = link
+        self.index: int = index
+        self.on_modify: Callable[[], None] = on_modify
+        self.on_remove: Callable[[LinkItem], None] = on_remove
 
         # Init parent
         super().__init__()

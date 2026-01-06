@@ -1,6 +1,6 @@
-from util.metadata import Metadata, Album, Item, Filter
-from util.dialogs import InputDialog
 from util.ai import DescriptionModel, TextModel
+from util.dialogs import InputDialog
+from util.library import MetadataUtil, Item, Filter, Album, Library
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical, Horizontal, VerticalScroll
@@ -11,20 +11,22 @@ class MetadataScreen(Screen):
     # Info
     TITLE = 'Metadata'
 
-    # Widgets
-    w_content = None
-    w_info = None
-    w_logs = None
 
-    # Logs
-    logs_count = 0
+    # Constructor
+    def __init__(self):
+        # Widgets
+        self.w_content = None
+        self.w_info = None
+        self.w_logs = None
 
-    # Albums
-    albums: list[Album] = []
+        # Logs
+        self.logs_count = 0
 
-    # Options
-    is_working = False
+        # Options
+        self.is_working = False
 
+        # Init parent
+        super().__init__()
 
     # Init
     def on_mount(self):
@@ -86,36 +88,23 @@ class MetadataScreen(Screen):
 
     # Albums
     def load_albums(self):
-        # Reset albums
-        self.albums = []
+        # Load albums
+        success: bool = Library.load_albums(Filter.images)
 
-        # Create items info
-        items_with_metadata: int = 0
-        items_without_metadata: int = 0
-
-        # Create albums from links
-        for link in self.app.links:
-            # Check if link is valid
-            if not link.isValid(): 
-                # Not valid -> Notify & hide content
-                self.log_message('Failed to load albums (please check all links in settings have existing paths)')
-                self.toggleContent(False)
-                return
-
-            # Create album
-            album = Album(link, Filter.images)
-
-            # Update items info & save album
-            items_with_metadata += album.items_with_metadata
-            items_without_metadata += album.items_without_metadata
-            self.albums.append(album)
+        # Check if success
+        if success:
+            self.log_message(f'Loaded {len(Library.albums)} albums successfully')
+        else:
+            self.log_message('Failed to load albums (please check all links in settings have existing paths)')
+        self.toggleContent(success)
 
         # Update albums info
+        items_with_metadata: int = 0
+        items_without_metadata: int = 0
+        for album in Library.albums:
+            items_with_metadata += album.items_with_metadata
+            items_without_metadata += album.items_without_metadata
         self.update_albums_info(items_with_metadata, items_without_metadata)
-
-        # Notify & show content
-        self.log_message('Albums loaded succesfully')
-        self.toggleContent(True)
 
     def update_albums_info(self, items_with_metadata, items_without_metadata):
         # Update info text
@@ -158,7 +147,7 @@ class MetadataScreen(Screen):
             self.app.call_from_thread(self.log_message, path)
 
         # Search albums
-        for album in self.albums:
+        for album in Library.albums:
             # Search album
             album.search(value, on_item_found)
 
@@ -175,7 +164,7 @@ class MetadataScreen(Screen):
     async def execute_option_clean(self):
         # Clean & save albums metadata
         album: Album
-        for album_index, album in enumerate(self.albums):
+        for album_index, album in enumerate(Library.albums):
             # Clean & save album metadata
             self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning & saving...')
             album.clean_metadata()
@@ -223,7 +212,7 @@ class MetadataScreen(Screen):
 
         # Loop albums
         album: Album
-        for album_index, album in enumerate(self.albums):
+        for album_index, album in enumerate(Library.albums):
             self.app.call_from_thread(self.log_message, f'Album {album_index}: Checking...')
 
             # Stats
@@ -243,9 +232,9 @@ class MetadataScreen(Screen):
                 item_metadata: dict = album.get_item_metadata(item.name)
 
                 # Check if item needs fixing
-                fix_caption: bool = not Metadata.has_valid_caption(item_metadata)
-                fix_labels: bool = not Metadata.has_valid_labels(item_metadata)
-                fix_text: bool = not Metadata.has_valid_text(item_metadata)
+                fix_caption: bool = not MetadataUtil.has_valid_caption(item_metadata)
+                fix_labels: bool = not MetadataUtil.has_valid_labels(item_metadata)
+                fix_text: bool = not MetadataUtil.has_valid_text(item_metadata)
 
                 if not fix_caption and not fix_labels and not fix_text: continue
 

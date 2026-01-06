@@ -1,4 +1,4 @@
-from util.link import Link
+from util.library import Link, Library
 from util.dialogs import ConfirmDialog
 from screens.settings.link_item import LinkItem
 from textual.screen import Screen
@@ -10,9 +10,14 @@ class SettingsScreen(Screen):
     # Info
     TITLE = 'Settings'
 
-    # Widgets
-    w_links = None
 
+    # Constructor
+    def __init__(self):
+        # Widgets
+        self.w_links = None
+
+        # Init parent
+        super().__init__()
 
     # Screen
     def compose(self):
@@ -25,7 +30,7 @@ class SettingsScreen(Screen):
         yield Label(classes='box', content='Link are formed by an album folder and its metadata file\n· Add an album folder to enable backing it up\n· Add a metadata file to enable generating metadata for its album\n\nNote: Make sure you add links in the same order as in the phone app')
         yield Button(classes='menu_button', id='add-link', label='Add link')
         with self.w_links:
-            for index, link in enumerate(self.app.links):
+            for index, link in enumerate(Library.links):
                 yield self.create_link_item(index, link)
 
     # Events
@@ -38,12 +43,12 @@ class SettingsScreen(Screen):
 
     # Links
     def create_link_item(self, index: int, link: Link):
-        return LinkItem(link, index, on_modify=self.app.save_links, on_remove=lambda link_item: self.remove_link(link_item))
+        return LinkItem(link, index, on_modify=Library.save_links, on_remove=lambda link_item: self.remove_link(link_item))
 
     def add_link(self):
         # Add link to list
         link = Link()
-        index = self.app.add_link(link)
+        index = Library.add_link(link)
 
         # Add link item to container
         link_item = self.create_link_item(index, link)
