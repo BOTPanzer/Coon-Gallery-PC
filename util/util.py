@@ -82,9 +82,9 @@ class Server:
                 # Wait until the server is closed
                 await server.wait_closed()
 
-        # Error    
+        # Error
         except Exception as e:
-            self.on_error(f"Server crashed: {e}")
+            self.on_error(f"Internal error: {e}")
 
         # Finished
         finally:
@@ -112,13 +112,15 @@ class Server:
             # Wait for data received
             async for message in websocket:
                 if isinstance(message, str):
-                    self.on_received_string(websocket, message)
+                    self.on_received_string(message)
                 else:
-                    self.on_received_binary(websocket, message)
+                    self.on_received_binary(message)
 
-        # Error
+        # Errors
         except websockets.ConnectionClosed as e:
             self.on_error(f"Connection closed: {e}")
+        except Exception as e:
+            self.on_error(f"Internal error: {e}")
 
         # Finished
         finally:

@@ -90,11 +90,11 @@ class SyncScreen(Screen):
 
     def on_received_string(self, message: str):
         # Log
-        self.log_message_async('Received message')
+        self.log_message_async(f'Received message: {message}')
 
     def on_received_bytes(self, data: bytes):
         # Log
-        self.log_message_async('Received bytes')
+        self.log_message_async(f'Received bytes: {len(data)}')
 
     # Albums
     def load_albums(self):
