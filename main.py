@@ -30,7 +30,7 @@ class CoonGallery(App):
         Server.current = Server()
         self.run_worker(Server.current.start(), thread=True)
 
-        # Start HomeScreen
+        # Start app in home
         self.push_screen(HomeScreen())
 
 # Run app

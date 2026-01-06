@@ -7,6 +7,7 @@ import socket
 # Util functions
 class Util:
 
+    # JSON
     @staticmethod
     def save_json(path: str, data, pretty: bool = False):
         with open(path, 'w', encoding='utf-8') as f:
@@ -23,6 +24,7 @@ class Util:
         except:
             return {}
 
+    # Paths
     @staticmethod
     def join(p1, p2):
         return os.path.join(p1, p2)
@@ -31,6 +33,7 @@ class Util:
     def get_data_path():
         return Util.join(pathlib.Path().resolve(), 'data')
 
+    # Network
     @staticmethod
     def get_local_ip():
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -64,7 +67,7 @@ class Server:
         self.events_on_error = set()
         self.events_on_server_state_changed = set()
         self.events_on_connection_state_changed = set()
-        self.events_on_received_string = set()
+        self.events_on_received_json = set()
         self.events_on_received_bytes = set()
 
     # Server logic
@@ -112,7 +115,7 @@ class Server:
             # Wait for data received
             async for message in websocket:
                 if isinstance(message, str):
-                    self.on_received_string(message)
+                    self.on_received_json(message)
                 else:
                     self.on_received_binary(message)
 
@@ -129,7 +132,7 @@ class Server:
             self.on_connection_state_changed(False, client_ip)
 
     # Events
-    def register_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None, received_string = None, received_bytes = None):
+    def register_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None, received_josn = None, received_bytes = None):
         if log_message is not None: 
             self.events_on_log_message.add(log_message)
         if error is not None: 
@@ -138,12 +141,12 @@ class Server:
             self.events_on_server_state_changed.add(server_state_changed)
         if connection_state_changed is not None: 
             self.events_on_connection_state_changed.add(connection_state_changed)
-        if received_string is not None: 
-            self.events_on_received_string.add(received_string)
+        if received_josn is not None: 
+            self.events_on_received_json.add(received_josn)
         if received_bytes is not None: 
             self.events_on_received_bytes.add(received_bytes)
 
-    def unregister_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None, received_string = None, received_bytes = None):
+    def unregister_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None, received_json = None, received_bytes = None):
         if log_message is not None: 
             self.events_on_log_message.discard(log_message)
         if error is not None: 
@@ -152,8 +155,8 @@ class Server:
             self.events_on_server_state_changed.discard(server_state_changed)
         if connection_state_changed is not None: 
             self.events_on_connection_state_changed.discard(connection_state_changed)
-        if received_string is not None: 
-            self.events_on_received_string.discard(received_string)
+        if received_json is not None: 
+            self.events_on_received_json.discard(received_json)
         if received_bytes is not None: 
             self.events_on_received_bytes.discard(received_bytes)
 
@@ -191,9 +194,17 @@ class Server:
         # Call event
         for callback in self.events_on_connection_state_changed: callback(is_open, client_ip)
 
-    def on_received_string(self, message: str):
-        # Call event
-        for callback in self.events_on_received_string: callback(message)
+    def on_received_json(self, message: str):
+        try:
+            # Turn the message into a dictionary
+            data = json.loads(message)
+
+            # Call event
+            for callback in self.events_on_received_json: callback(data)
+
+        except json.JSONDecodeError as e:
+            # Failed to parse json
+            self.on_error(f'Failed to parse JSON: {e}')
 
     def on_received_binary(self, data: bytes):
         # Call event

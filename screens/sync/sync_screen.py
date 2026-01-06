@@ -38,7 +38,7 @@ class SyncScreen(Screen):
         # Register server events
         Server.current.register_events(
             log_message=self.on_log_message,
-            received_string=self.on_received_string,
+            received_josn=self.on_received_json,
             received_bytes=self.on_received_bytes,
         )
 
@@ -46,7 +46,7 @@ class SyncScreen(Screen):
         # Unregister server events
         Server.current.unregister_events(
             log_message=self.on_log_message,
-            received_string=self.on_received_string,
+            received_json=self.on_received_json,
             received_bytes=self.on_received_bytes,
         )
 
@@ -88,9 +88,9 @@ class SyncScreen(Screen):
         # Log
         self.log_message_async(error)
 
-    def on_received_string(self, message: str):
+    def on_received_json(self, json: dict):
         # Log
-        self.log_message_async(f'Received message: {message}')
+        self.log_message_async(f'Received json: {json}')
 
     def on_received_bytes(self, data: bytes):
         # Log
