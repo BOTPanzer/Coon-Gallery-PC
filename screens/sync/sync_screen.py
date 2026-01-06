@@ -27,12 +27,13 @@ class SyncScreen(Screen):
 
     # State
     def on_mount(self):
+        # Show previous server logs
+        for log in Server.current.logs:
+            self.log_message(f'OLD: {log}')
+
         # Load albums
         self.load_albums()
 
-        # Show all previous logs
-        for log in Server.current.logs:
-            self.log_message(log)
 
         # Register server events
         Server.current.register_events(

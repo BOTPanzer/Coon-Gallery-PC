@@ -1,8 +1,8 @@
 import json
 import pathlib
 import os
-import asyncio
 import websockets
+import socket
 
 # Util functions
 class Util:
@@ -31,6 +31,20 @@ class Util:
     def get_data_path():
         return Util.join(pathlib.Path().resolve(), 'data')
 
+    @staticmethod
+    def get_local_ip():
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # We don't actually connect, but this identifies the right interface
+            s.connect(('8.8.8.8', 1))
+            ip = s.getsockname()[0]
+        except Exception:
+            # Fallback to localhost if no network
+            ip = '127.0.0.1'
+        finally:
+            s.close()
+        return ip
+
 # WebSocket server
 class Server:
 
@@ -55,6 +69,9 @@ class Server:
 
     # Server logic
     async def start(self, HOST: str = '0.0.0.0', PORT: int = 6969):
+        # Log starting
+        self.log_message(f'Starting server in {Util.get_local_ip()}:{PORT}...')
+
         # Start server
         try:
             async with websockets.serve(self.handler, HOST, PORT) as server:
