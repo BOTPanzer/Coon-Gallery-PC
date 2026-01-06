@@ -28,7 +28,7 @@ class MetadataScreen(Screen):
         # Init parent
         super().__init__()
 
-    # Init
+    # State
     def on_mount(self):
         # Load albums
         self.load_albums()

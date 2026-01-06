@@ -21,14 +21,14 @@ class CoonGallery(App):
     CSS_PATH = Util.join('styles', 'main.tcss')
     theme = "rose-pine" # Use rose-pine as default theme
 
-    # Init
+    # State
     def on_mount(self):
         # Load links
         Library.load_links()
 
-        # Start server
-        self.server: Server = Server()
-        self.run_worker(self.server.start(), thread=True)
+        # Init & start server
+        Server.current = Server()
+        self.run_worker(Server.current.start(), thread=True)
 
         # Start HomeScreen
         self.push_screen(HomeScreen())

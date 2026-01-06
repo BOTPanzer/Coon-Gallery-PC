@@ -34,10 +34,24 @@ class Util:
 # WebSocket server
 class Server:
 
+    # Singleton
+    current: "Server" = None
+
+
     # Constructor
     def __init__(self):
+        # Server
+        self.logs = []
         self.is_running = False
         self.current_connection: websockets.ServerConnection = None
+
+        # Events
+        self.events_on_log_message = set()
+        self.events_on_error = set()
+        self.events_on_server_state_changed = set()
+        self.events_on_connection_state_changed = set()
+        self.events_on_received_string = set()
+        self.events_on_received_bytes = set()
 
     # Server logic
     async def start(self, HOST: str = '0.0.0.0', PORT: int = 6969):
@@ -46,7 +60,7 @@ class Server:
             async with websockets.serve(self.handler, HOST, PORT) as server:
                 # Mark as running
                 self.is_running = True
-                self.on_state_changed(self.is_running)
+                self.on_server_state_changed(self.is_running)
                 
                 # Wait until the server is closed
                 await server.wait_closed()
@@ -59,18 +73,21 @@ class Server:
         finally:
             # Mark as not running
             self.is_running = False
-            self.on_state_changed(self.is_running)
+            self.on_server_state_changed(self.is_running)
 
     async def handler(self, websocket: websockets.ServerConnection):
+        # Get IP
+        client_ip = websocket.remote_address[0]
+
         # Only allow 1 connection
         if self.current_connection is not None:
+            self.log_message(f'Connection from {client_ip} refused, only 1 connection is allowed')
             await websocket.send('Only 1 connection allowed at a time')
             await websocket.close()
             return
 
         # Save connection
         self.current_connection = websocket
-        client_ip = websocket.remote_address[0]
         self.on_connection_state_changed(True, client_ip)
 
         # Listen for messages
@@ -78,9 +95,9 @@ class Server:
             # Wait for data received
             async for message in websocket:
                 if isinstance(message, str):
-                    self.on_string_received(websocket, message)
+                    self.on_received_string(websocket, message)
                 else:
-                    self.on_binary_received(websocket, message)
+                    self.on_received_binary(websocket, message)
 
         # Error
         except websockets.ConnectionClosed as e:
@@ -93,23 +110,72 @@ class Server:
             self.on_connection_state_changed(False, client_ip)
 
     # Events
-    def on_error(self, error: str):
-        print(error)
+    def register_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None, received_string = None, received_bytes = None):
+        if log_message is not None: 
+            self.events_on_log_message.add(log_message)
+        if error is not None: 
+            self.events_on_error.add(error)
+        if server_state_changed is not None: 
+            self.events_on_server_state_changed.add(server_state_changed)
+        if connection_state_changed is not None: 
+            self.events_on_connection_state_changed.add(connection_state_changed)
+        if received_string is not None: 
+            self.events_on_received_string.add(received_string)
+        if received_bytes is not None: 
+            self.events_on_received_bytes.add(received_bytes)
 
-    def on_state_changed(self, is_running: bool):
+    def unregister_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None, received_string = None, received_bytes = None):
+        if log_message is not None: 
+            self.events_on_log_message.discard(log_message)
+        if error is not None: 
+            self.events_on_error.discard(error)
+        if server_state_changed is not None: 
+            self.events_on_server_state_changed.discard(server_state_changed)
+        if connection_state_changed is not None: 
+            self.events_on_connection_state_changed.discard(connection_state_changed)
+        if received_string is not None: 
+            self.events_on_received_string.discard(received_string)
+        if received_bytes is not None: 
+            self.events_on_received_bytes.discard(received_bytes)
+
+    def log_message(self, message: str):
+        # Log
+        self.logs.append(message)
+
+        # Call event
+        for callback in self.events_on_log_message: callback(message)
+
+    def on_error(self, error: str):
+        # Log
+        self.log_message(error)
+
+        # Call event
+        for callback in self.events_on_error: callback(error)
+
+    def on_server_state_changed(self, is_running: bool):
+        # Log
         if is_running:
-            print(f'Server is now running')
+            self.log_message(f'Server is now running')
         else:
-            print(f'Server is now not running')
+            self.log_message(f'Server is now not running')
+
+        # Call event
+        for callback in self.events_on_server_state_changed: callback(is_running)
 
     def on_connection_state_changed(self, is_open: bool, client_ip: str):
+        # Log
         if is_open:
-            print(f'Connection opened with {client_ip}')
+            self.log_message(f'Connection opened with {client_ip}')
         else:
-            print(f'Connection closed with {client_ip}')
+            self.log_message(f'Connection closed with {client_ip}')
 
-    def on_string_received(self, message: str):
-        print(f'Text received: {message}')
+        # Call event
+        for callback in self.events_on_connection_state_changed: callback(is_open, client_ip)
 
-    def on_binary_received(self, data: bytes):
-        print(f'Binary received: {len(data)} bytes')
+    def on_received_string(self, message: str):
+        # Call event
+        for callback in self.events_on_received_string: callback(message)
+
+    def on_received_binary(self, data: bytes):
+        # Call event
+        for callback in self.events_on_received_bytes: callback(data)

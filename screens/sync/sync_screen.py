@@ -1,4 +1,5 @@
 from util.library import Library
+from util.util import Server
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical, Horizontal, VerticalScroll
@@ -24,10 +25,29 @@ class SyncScreen(Screen):
         # Init parent
         super().__init__()
 
-    # Init
+    # State
     def on_mount(self):
         # Load albums
         self.load_albums()
+
+        # Show all previous logs
+        for log in Server.current.logs:
+            self.log_message(log)
+
+        # Register server events
+        Server.current.register_events(
+            log_message=self.on_log_message,
+            received_string=self.on_received_string,
+            received_bytes=self.on_received_bytes,
+        )
+
+    def on_unmount(self):
+        # Unregister server events
+        Server.current.unregister_events(
+            log_message=self.on_log_message,
+            received_string=self.on_received_string,
+            received_bytes=self.on_received_bytes,
+        )
 
     # Screen
     def compose(self):
@@ -48,7 +68,7 @@ class SyncScreen(Screen):
                     yield Button(classes='menu_button', id='upload-metadata', label='Upload')
             yield self.w_logs
 
-    # Events
+    # Events (screen)
     def on_button_pressed(self, event: Button.Pressed):
         # Check if working
         if self.is_working: return
@@ -61,6 +81,19 @@ class SyncScreen(Screen):
     def toggleContent(self, show: bool):
         # Toggle container
         self.w_content.visible = show
+
+    # Events (server)
+    def on_log_message(self, error: str):
+        # Log
+        self.log_message_async(error)
+
+    def on_received_string(self, message: str):
+        # Log
+        self.log_message_async('Received message')
+
+    def on_received_bytes(self, data: bytes):
+        # Log
+        self.log_message_async('Received bytes')
 
     # Albums
     def load_albums(self):
