@@ -24,7 +24,7 @@ class SyncScreen(Screen):
     def on_mount(self):
         # Show previous server logs
         for log in SyncServer.current.logs:
-            self.log_message(f'OLD: {log}')
+            self.log_message(log)
 
         # Register server events
         SyncServer.current.register_events(log_message=self.on_log_message)

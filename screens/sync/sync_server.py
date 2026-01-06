@@ -1,4 +1,4 @@
-from util.library import Album, Library, Link
+from util.library import Link, Item, Album, Library
 from util.util import Util, Server
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -370,7 +370,7 @@ class SyncServer(Server):
             next = self.host.queue[queue_index]
 
             # Request next
-            self.log_message(f'- Requesting "{self.host.albums[next.album_index][next.item_index]}"...')
+            self.log_message(f'- Requesting "{self.client.albums[next.album_index][next.item_index]}"...')
             await self.send(json.dumps({
                 'action': 'requestFileInfo',
                 'albumIndex': next.album_index,
@@ -432,6 +432,65 @@ class SyncServer(Server):
         self.set_syncing(True)
         self.log_message('Starting to download albums...')
 
+        # Load albums
+        success: bool
+        (success, self.host.albums) = Library.load_albums()
+
+        # Check if albums were loaded
+        if not success:
+            # Failed to load albums -> Stop syncing
+            self.set_syncing(False)
+            self.log_message('Download cancelled, make sure all link folders exist')
+            return
+
+        # Check albums sizes
+        host_albums_count = len(self.host.albums)
+        client_albums_count = len(self.client.albums)
+        if host_albums_count is not client_albums_count:
+            # Different album sizes -> Stop syncing
+            self.set_syncing(False)
+            self.log_message(f'Download cancelled, make sure both apps have the same amount of links (host: {host_albums_count}, client: {client_albums_count})')
+            return
+
+        # Create empty queue
+        queue = []
+
+        # Check albums
+        host_album: Album
+        client_album: list[str]
+        for album_index, host_album in enumerate(self.host.albums):
+            # Get client album (item names list)
+            client_album = self.client.albums[album_index]
+
+            # Check for deleted files
+            host_item: Item
+            for host_item in host_album.items:
+                # Check if client album contains item
+                if host_item.name in client_album: continue
+
+                # Item is missing -> It was deleted
+                self.log_message(f'Deleted file found, deleting "{host_item.name}"...')
+                Path(host_item.path).unlink(missing_ok=True)
+
+            # Check for missing files (from oldest to newest)
+            for reversed_item_index, item_name in enumerate(reversed(client_album)):
+                # Check if host album contains item
+                if any(album_item.name == item_name for album_item in host_album.items): continue
+
+                # Item is missing -> It needs to be downloaded
+                self.log_message(f'Missing file found, adding "{item_name}" to the queue...')
+                item = QueueItem()
+                item.album_index = album_index
+                item.item_index = len(client_album) - (reversed_item_index + 1)
+                queue.append(item)
+
+        # Update queue
+        self.host.queue = queue
+
+        # Request first
+        self.host.queue_index = -1
+        await self.request_next_queue_item()
+
     async def download_metadata(self):
         # Check if can use
         if not self.can_use(): return
@@ -440,7 +499,7 @@ class SyncServer(Server):
         self.set_syncing(True)
         self.log_message('Starting to download metadata...')
 
-        # Create new queue
+        # Create empty queue
         queue = []
 
         # Check metadata files
@@ -453,7 +512,7 @@ class SyncServer(Server):
             if not Util.exists_path(metadata_path):
                 # Path does not exist -> Stop syncing
                 self.set_syncing(False)
-                self.log_message('Download cancelled, make sure all metadata files exist')
+                self.log_message('Download cancelled, make sure all link metadata files exist')
                 return
 
             # Create item & add it to the queue
@@ -462,10 +521,10 @@ class SyncServer(Server):
             queue.append(item)
 
         # Update queue
-        self.host.queue_index = -1
         self.host.queue = queue
 
-        # Request next item
+        # Request first
+        self.host.queue_index = -1
         await self.request_next_queue_metadata()
 
     async def upload_metadata(self):
@@ -486,7 +545,7 @@ class SyncServer(Server):
             if not Util.exists_path(metadata_path):
                 # Path does not exist -> Stop syncing
                 self.set_syncing(False)
-                self.log_message('Upload cancelled, make sure all metadata files exist')
+                self.log_message('Upload cancelled, make sure all link metadata files exist')
                 return
 
         # Start metadata request
