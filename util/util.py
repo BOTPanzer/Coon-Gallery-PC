@@ -92,7 +92,7 @@ class Server:
 
         # Error
         except Exception as e:
-            self.on_error(f"Internal error: {e}")
+            self.log_message(f"Internal error: {e}")
 
         # Finished
         finally:
@@ -127,9 +127,9 @@ class Server:
 
         # Errors
         except websockets.ConnectionClosed as e:
-            self.on_error(f"Connection closed: {e}")
+            self.log_message(f"Connection closed: {e}")
         except Exception as e:
-            self.on_error(f"Internal error: {e}")
+            self.log_message(f"Internal error: {e}")
 
         # Finished
         finally:
@@ -138,15 +138,12 @@ class Server:
             self.connection = None
             self.on_connection_state_changed(False, client_ip)
 
-    # Events
+    # Logs
     def log_message(self, message: str):
         # Log
         self.logs.append(message)
 
-    def on_error(self, error: str):
-        # Log
-        self.log_message(error)
-
+    # State
     def on_server_state_changed(self, is_running: bool):
         # Log
         if is_running:
@@ -161,6 +158,7 @@ class Server:
         else:
             self.log_message(f'Disconnected from client {client_ip}')
 
+    # Data
     async def on_received_string(self, message: str):
         # Log
         self.log_message(f'Received string: {len(message)} chars')

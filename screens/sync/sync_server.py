@@ -60,7 +60,6 @@ class SyncServer(Server):
 
         # Events
         self.events_on_log_message = set()
-        self.events_on_error = set()
         self.events_on_server_state_changed = set()
         self.events_on_connection_state_changed = set()
 
@@ -75,26 +74,23 @@ class SyncServer(Server):
         self.client = ClientInfo()
 
     # Events
-    def register_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None):
+    def register_events(self, log_message = None, server_state_changed = None, connection_state_changed = None):
         if log_message is not None: 
             self.events_on_log_message.add(log_message)
-        if error is not None: 
-            self.events_on_error.add(error)
         if server_state_changed is not None: 
             self.events_on_server_state_changed.add(server_state_changed)
         if connection_state_changed is not None: 
             self.events_on_connection_state_changed.add(connection_state_changed)
 
-    def unregister_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None):
+    def unregister_events(self, log_message = None, server_state_changed = None, connection_state_changed = None):
         if log_message is not None: 
             self.events_on_log_message.discard(log_message)
-        if error is not None: 
-            self.events_on_error.discard(error)
         if server_state_changed is not None: 
             self.events_on_server_state_changed.discard(server_state_changed)
         if connection_state_changed is not None: 
             self.events_on_connection_state_changed.discard(connection_state_changed)
 
+    # Logs
     def log_message(self, message: str):
         # Call parent function
         super().log_message(message)
@@ -102,13 +98,7 @@ class SyncServer(Server):
         # Call event
         for callback in self.events_on_log_message: callback(message)
 
-    def on_error(self, error: str):
-        # Call parent function
-        super().on_error(error)
-
-        # Call event
-        for callback in self.events_on_error: callback(error)
-
+    # State
     def on_server_state_changed(self, is_running: bool):
         # Call parent function
         super().on_server_state_changed(is_running)
@@ -128,6 +118,7 @@ class SyncServer(Server):
         # Call event
         for callback in self.events_on_connection_state_changed: callback(is_open, client_ip)
 
+    # Data
     async def on_received_string(self, string: str):
         # Parse JSON from string
         try:
@@ -137,7 +128,7 @@ class SyncServer(Server):
             # Check if message has action
             if not 'action' in message: 
                 # No action -> Show error
-                self.on_error(f'Missing JSON message action')
+                self.log_message(f'Missing JSON message action')
             else:
                 # Has action -> Check it
                 match message['action']:
@@ -161,7 +152,7 @@ class SyncServer(Server):
 
         except json.JSONDecodeError as e:
             # Failed to parse json
-            self.on_error(f'Failed to parse JSON: {e}')
+            self.log_message(f'Failed to parse JSON: {e}')
 
     async def on_received_binary(self, data: bytes):
         # Get request
