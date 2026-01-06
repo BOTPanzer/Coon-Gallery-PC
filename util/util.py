@@ -68,6 +68,7 @@ class Server:
         # Server
         self.logs = []
         self.is_running = False
+        self.is_connected = False
         self.connection: websockets.ServerConnection = None
 
     # Server logic
@@ -100,13 +101,14 @@ class Server:
         client_ip = websocket.remote_address[0]
 
         # Only allow 1 connection
-        if self.connection is not None:
+        if self.is_connected:
             self.log_message(f'Connection from {client_ip} refused, only 1 connection is allowed')
             await websocket.send('Only 1 connection allowed at a time')
             await websocket.close()
             return
 
         # Save connection
+        self.is_connected = True
         self.connection = websocket
         self.on_connection_state_changed(True, client_ip)
 
@@ -128,6 +130,7 @@ class Server:
         # Finished
         finally:
             # Free connection
+            self.is_connected = False
             self.connection = None
             self.on_connection_state_changed(False, client_ip)
 
@@ -161,3 +164,9 @@ class Server:
     def on_received_binary(self, data: bytes):
         # Log
         self.log_message(f'Received bytes: {len(data)} bytes')
+
+    # Helpers
+    def send(self, data):
+        # Send data to client
+        if self.is_connected:
+            self.connection.send(data)

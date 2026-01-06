@@ -17,9 +17,6 @@ class SyncScreen(Screen):
         # Logs
         self.logs_count = 0
 
-        # Options
-        self.is_working = False
-
         # Init parent
         super().__init__()
 
@@ -56,13 +53,16 @@ class SyncScreen(Screen):
 
     # Events
     def on_button_pressed(self, event: Button.Pressed):
-        # Check if working
-        if self.is_working: return
-
         # Check button
         match event.button.id:
             case 'back':
                 self.app.pop_screen()
+            case 'download-albums':
+                self.run_worker(SyncServer.current.download_albums, thread=True)
+            case 'download-metadata':
+                self.run_worker(SyncServer.current.download_metadata, thread=True)
+            case 'upload-metadata':
+                self.run_worker(SyncServer.current.upload_metadata, thread=True)
 
     def on_log_message(self, error: str):
         # Log
@@ -84,11 +84,3 @@ class SyncScreen(Screen):
 
     def log_message_async(self, message: str):
         self.app.call_from_thread(self.log_message, message)
-
-    # Options
-    def set_working(self, working, message):
-        self.is_working = working
-        self.log_message(message)
-
-    def set_working_async(self, working: bool, message: str):
-        self.app.call_from_thread(self.set_working, working, message)
