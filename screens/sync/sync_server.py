@@ -139,7 +139,7 @@ class SyncServer(Server):
                     case 'albums': self.action_received_albums(message)
 
                     # Received item info
-                    case 'fileInfo': await self.action_received_item_info(message)
+                    case 'itemInfo': await self.action_received_item_info(message)
 
                     # Received metadata info
                     case 'metadataInfo': await self.action_received_metadata_info(message)
@@ -190,7 +190,7 @@ class SyncServer(Server):
         # Create new request info
         request = Request()
         request.album_index = message['albumIndex']
-        request.item_index = message['fileIndex']
+        request.item_index = message['itemIndex']
         request.last_modified = message['lastModified']
         request.size = message['size']
         request.part_max_size = message['maxPartSize']
@@ -199,9 +199,9 @@ class SyncServer(Server):
 
         # Request data
         await self.send(json.dumps({
-            'action': 'requestFileData',
+            'action': 'requestItemData',
             'albumIndex': request.album_index,
-            'fileIndex': request.item_index,
+            'itemIndex': request.item_index,
             'part': request.part_index
         }))
 
@@ -223,9 +223,9 @@ class SyncServer(Server):
         else:
             # Not finished -> Request next part
             await self.send(json.dumps({
-                'action': 'requestFileData',
+                'action': 'requestItemData',
                 'albumIndex': album_index,
-                'fileIndex': item_index,
+                'itemIndex': item_index,
                 'part': part_index
             }))
 
@@ -234,11 +234,7 @@ class SyncServer(Server):
         # Create new request info
         request = Request()
         request.album_index = message['albumIndex']
-        #request.item_index = message['fileIndex']
         request.last_modified = message['lastModified']
-        #request.size = message['size']
-        #request.part_max_size = message['maxPartSize']
-        #request.parts = message['parts']
         self.host.request = request
 
         # Request data
@@ -363,9 +359,9 @@ class SyncServer(Server):
             # Request next
             self.log_message(f'- Requesting "{self.client.albums[next.album_index][next.item_index]}"...')
             await self.send(json.dumps({
-                'action': 'requestFileInfo',
+                'action': 'requestItemInfo',
                 'albumIndex': next.album_index,
-                'fileIndex': next.item_index,
+                'itemIndex': next.item_index,
                 'requestIndex': queue_index,
                 'requestCount': queue_size
             }))
