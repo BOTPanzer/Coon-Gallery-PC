@@ -364,7 +364,7 @@ class SyncServer(Server):
         if queue_index >= queue_size:
             # No items left -> Finished sync
             self.set_syncing(False)
-            self.log_message('Finished albums sync')
+            self.log_message('Finished downloading albums')
         else:
             # Items left -> Get next item
             next = self.host.queue[queue_index]
@@ -392,7 +392,7 @@ class SyncServer(Server):
         if queue_index >= queue_size:
             # No items left -> Finished sync
             self.set_syncing(False)
-            self.log_message('Finished metadata sync')
+            self.log_message('Finished downloading metadata')
         else:
             # Items left -> Get next item
             next = self.host.queue[queue_index]
@@ -429,7 +429,8 @@ class SyncServer(Server):
         if not self.can_use(): return
 
         # Start syncing
-        #self.set_syncing(True)
+        self.set_syncing(True)
+        self.log_message('Starting to download albums...')
 
     async def download_metadata(self):
         # Check if can use
@@ -452,7 +453,7 @@ class SyncServer(Server):
             if not Util.exists_path(metadata_path):
                 # Path does not exist -> Stop syncing
                 self.set_syncing(False)
-                self.log_message('Cancelled sync, make sure all metadata files exist')
+                self.log_message('Download cancelled, make sure all metadata files exist')
                 return
 
             # Create item & add it to the queue
@@ -474,6 +475,19 @@ class SyncServer(Server):
         # Start syncing
         self.set_syncing(True)
         self.log_message('Starting to upload metadata...')
+
+        # Check metadata files
+        link: Link
+        for link in Library.links:
+            # Get metadata path
+            metadata_path = link.metadata_path
+
+            # Check if metadata exists
+            if not Util.exists_path(metadata_path):
+                # Path does not exist -> Stop syncing
+                self.set_syncing(False)
+                self.log_message('Upload cancelled, make sure all metadata files exist')
+                return
 
         # Start metadata request
         await self.send(json.dumps({
