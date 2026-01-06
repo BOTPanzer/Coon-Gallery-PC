@@ -8,11 +8,11 @@ import json
 @dataclass
 class Request:
     # Album
-    album_index: int = -1,
-    item_index: int = -1,
+    album_index: int = -1
+    item_index: int = -1
 
     # File info
-    last_modified: int = 0,
+    last_modified: int = 0
     size: int = 0
 
     # Parts info
@@ -37,7 +37,7 @@ class HostInfo:
 
     # Queue info
     queue_index: int = -1
-    queue: list[QueueItem] = field(default_factory=list),
+    queue: list[QueueItem] = field(default_factory=list)
 
 # Sync info (client)
 @dataclass
@@ -128,7 +128,7 @@ class SyncServer(Server):
         # Call event
         for callback in self.events_on_connection_state_changed: callback(is_open, client_ip)
 
-    def on_received_string(self, string: str):
+    async def on_received_string(self, string: str):
         # Parse JSON from string
         try:
             # Parse JSON
@@ -148,32 +148,32 @@ class SyncServer(Server):
                     case 'albums': self.action_received_albums(message)
 
                     # Received item info
-                    case 'fileInfo': self.action_received_item_info(message)
+                    case 'fileInfo': await self.action_received_item_info(message)
 
                     # Received metadata info
-                    case 'metadataInfo': self.action_received_metadata_info(message)
+                    case 'metadataInfo': await self.action_received_metadata_info(message)
 
                     # Send metadata info
-                    case 'requestMetadataInfo': self.action_send_metadata_info(message)
+                    case 'requestMetadataInfo': await self.action_send_metadata_info(message)
 
                     # Send metadata data
-                    case 'requestMetadataData': self.action_send_metadata_data(message)
+                    case 'requestMetadataData': await self.action_send_metadata_data(message)
 
         except json.JSONDecodeError as e:
             # Failed to parse json
             self.on_error(f'Failed to parse JSON: {e}')
 
-    def on_received_binary(self, data: bytes):
+    async def on_received_binary(self, data: bytes):
         # Get request
         request = self.host.request
 
         # Check request type
         if request.item_index >= 0:
             # Has item index -> Is a file request
-            self.action_received_item_data(request, data)
+            await self.action_received_item_data(request, data)
         else:
             # No item index _> Is a metadata request
-            self.action_received_metadata_data(request, data)
+            await self.action_received_metadata_data(request, data)
 
     # Syncing
     def set_syncing(self, new_syncing: bool):
@@ -195,7 +195,7 @@ class SyncServer(Server):
         self.log_message('Received client albums list')
 
     # Actions (receive item)
-    def action_received_item_info(self, message: dict):
+    async def action_received_item_info(self, message: dict):
         # Create new request info
         request = Request()
         request.album_index = message['albumIndex']
@@ -207,14 +207,14 @@ class SyncServer(Server):
         self.host.request = request
 
         # Request data
-        self.send(json.dumps({
+        await self.send(json.dumps({
             'action': 'requestFileData',
             'albumIndex': request.album_index,
             'fileIndex': request.item_index,
             'part': request.part_index
         }))
 
-    def action_received_item_data(self, request: Request, data: bytes):
+    async def action_received_item_data(self, request: Request, data: bytes):
         # Get info
         album_index: int = request.album_index
         item_index: int = request.item_index
@@ -228,10 +228,10 @@ class SyncServer(Server):
         # Check if finished
         if finished:
             # Finished -> Request next
-            self.request_next_queue_item()
+            await self.request_next_queue_item()
         else:
             # Not finished -> Request next part
-            self.send(json.dumps({
+            await self.send(json.dumps({
                 'action': 'requestFileData',
                 'albumIndex': album_index,
                 'fileIndex': item_index,
@@ -239,7 +239,7 @@ class SyncServer(Server):
             }))
 
     # Actions (receive metadata)
-    def action_received_metadata_info(self, message: dict):
+    async def action_received_metadata_info(self, message: dict):
         # Create new request info
         request = Request()
         request.album_index = message['albumIndex']
@@ -251,12 +251,12 @@ class SyncServer(Server):
         self.host.request = request
 
         # Request data
-        self.send(json.dumps({
+        await self.send(json.dumps({
             'action': 'requestMetadataData',
             'albumIndex': request.album_index
         }))
 
-    def action_received_metadata_data(self, request: Request, data: bytes):
+    async def action_received_metadata_data(self, request: Request, data: bytes):
         # Get info
         album_index: int = request.album_index
         item_path: str = Library.links[album_index].metadata_path
@@ -267,34 +267,37 @@ class SyncServer(Server):
         # Check if finished
         if finished:
             # Finished -> Request next
-            self.request_next_queue_metadata()
+            await self.request_next_queue_metadata()
         else:
             # Not finished -> Request next part
-            self.send(json.dumps({
+            await self.send(json.dumps({
                 'action': 'requestMetadataData',
                 'albumIndex': album_index
             }))
 
     # Actions (send metadata)
-    def action_send_metadata_info(self, message: dict):
+    async def action_send_metadata_info(self, message: dict):
         # Get info
         album_index: int = message['albumIndex']
         metadata_path: str = Library.links[album_index].metadata_path
 
+        # Log
+        self.log_message(f'- Sending metadata for album {album_index}...')
+
         # Send info
-        self.send(json.dumps({
+        await self.send(json.dumps({
             'action': 'metadataInfo',
             'albumIndex': album_index,
             'lastModified': Util.get_last_modified(metadata_path)
         }))
 
-    def action_send_metadata_data(self, message: dict):
+    async def action_send_metadata_data(self, message: dict):
         # Get info
         album_index: int = message['albumIndex']
         metadata_path: str = Library.links[album_index].metadata_path
 
         # Send info
-        self.send(Path(metadata_path).read_bytes())
+        await self.send(Path(metadata_path).read_bytes())
 
     # Helpers
     def manage_write_data(self, request: Request, data: bytes, item_path: str) -> bool:
@@ -328,13 +331,13 @@ class SyncServer(Server):
             # Check if is the last part 
             if is_last:
                 # Is the last part -> Update last modified timestamp
-                Util.set_last_modified(item_path, (last_modified, last_modified))
+                Util.set_last_modified(item_path, last_modified)
 
                 # Log progress
                 progress_current = (self.host.queue_index + 1)
                 progress_size = len(self.host.queue)
                 percent = round(progress_current / progress_size * 100, 2)
-                self.log_message(f'({progress_current}/{progress_size}, {percent}%) {'Item received succesfully' if is_valid else 'Error receiving item'}')
+                self.log_message(f'({progress_current}/{progress_size}, {percent}%) {'Success' if is_valid else 'Error, data is invalid'}')
             else:
                 # Not the last part -> Log progress
                 self.log_message(f'Received part {part_index + 1}/{parts}')
@@ -348,9 +351,9 @@ class SyncServer(Server):
         # Mark as finished
         return True
 
-    def request_next_queue_item(self):
+    async def request_next_queue_item(self):
         # Check if still connected
-        if self.connection == None: return
+        if not self.is_connected: return
 
         # Update queue index
         self.host.queue_index += 1
@@ -358,7 +361,7 @@ class SyncServer(Server):
         queue_size = len(self.host.queue)
 
         # Check if queue has remaining items
-        if queue_index >= queue_size - 1:
+        if queue_index >= queue_size:
             # No items left -> Finished sync
             self.set_syncing(False)
             self.log_message('Finished albums sync')
@@ -368,7 +371,7 @@ class SyncServer(Server):
 
             # Request next
             self.log_message(f'- Requesting "{self.host.albums[next.album_index][next.item_index]}"...')
-            self.send(json.dumps({
+            await self.send(json.dumps({
                 'action': 'requestFileInfo',
                 'albumIndex': next.album_index,
                 'fileIndex': next.item_index,
@@ -376,9 +379,9 @@ class SyncServer(Server):
                 'requestCount': queue_size
             }))
 
-    def request_next_queue_metadata(self):
+    async def request_next_queue_metadata(self):
         # Check if still connected
-        if self.connection == None: return
+        if not self.is_connected: return
 
         # Update queue index
         self.host.queue_index += 1
@@ -386,7 +389,7 @@ class SyncServer(Server):
         queue_size = len(self.host.queue)
 
         # Check if queue has remaining items
-        if queue_index >= queue_size - 1:
+        if queue_index >= queue_size:
             # No items left -> Finished sync
             self.set_syncing(False)
             self.log_message('Finished metadata sync')
@@ -396,7 +399,7 @@ class SyncServer(Server):
 
             # Request next
             self.log_message(f'- Requesting metadata for album {next.album_index}...')
-            self.send(json.dumps({
+            await self.send(json.dumps({
                 'action': 'requestMetadataInfo',
                 'albumIndex': next.album_index
             }))
@@ -421,14 +424,14 @@ class SyncServer(Server):
         return True
 
     # Options
-    def download_albums(self):
+    async def download_albums(self):
         # Check if can use
         if not self.can_use(): return
 
         # Start syncing
         #self.set_syncing(True)
 
-    def download_metadata(self):
+    async def download_metadata(self):
         # Check if can use
         if not self.can_use(): return
 
@@ -462,9 +465,9 @@ class SyncServer(Server):
         self.host.queue = queue
 
         # Request next item
-        self.request_next_queue_metadata()
+        await self.request_next_queue_metadata()
 
-    def upload_metadata(self):
+    async def upload_metadata(self):
         # Check if can use
         if not self.can_use(): return
 
@@ -473,6 +476,6 @@ class SyncServer(Server):
         self.log_message('Starting to upload metadata...')
 
         # Start metadata request
-        self.send(json.dumps({
+        await self.send(json.dumps({
             'action': 'startMetadataRequest'
         }))

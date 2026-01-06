@@ -78,7 +78,11 @@ class Server:
 
         # Start server
         try:
-            async with websockets.serve(self.handler, HOST, PORT) as server:
+            async with websockets.serve(
+                self.handler, 
+                HOST, PORT, 
+                max_size=10_485_760  # 10 MB limit
+            ) as server:
                 # Mark as running
                 self.is_running = True
                 self.on_server_state_changed(self.is_running)
@@ -117,9 +121,9 @@ class Server:
             # Wait for data received
             async for message in websocket:
                 if isinstance(message, str):
-                    self.on_received_string(message)
+                    await self.on_received_string(message)
                 else:
-                    self.on_received_binary(message)
+                    await self.on_received_binary(message)
 
         # Errors
         except websockets.ConnectionClosed as e:
@@ -157,16 +161,16 @@ class Server:
         else:
             self.log_message(f'Disconnected from client {client_ip}')
 
-    def on_received_string(self, message: str):
+    async def on_received_string(self, message: str):
         # Log
         self.log_message(f'Received string: {len(message)} chars')
 
-    def on_received_binary(self, data: bytes):
+    async def on_received_binary(self, data: bytes):
         # Log
         self.log_message(f'Received bytes: {len(data)} bytes')
 
     # Helpers
-    def send(self, data):
+    async def send(self, data):
         # Send data to client
         if self.is_connected:
-            self.connection.send(data)
+            await self.connection.send(data)
