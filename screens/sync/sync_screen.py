@@ -1,5 +1,5 @@
+from screens.sync.sync_server import SyncServer
 from util.library import Library
-from util.util import Server
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical, Horizontal, VerticalScroll
@@ -28,27 +28,18 @@ class SyncScreen(Screen):
     # State
     def on_mount(self):
         # Show previous server logs
-        for log in Server.current.logs:
+        for log in SyncServer.current.logs:
             self.log_message(f'OLD: {log}')
 
         # Load albums
         self.load_albums()
 
-
         # Register server events
-        Server.current.register_events(
-            log_message=self.on_log_message,
-            received_josn=self.on_received_json,
-            received_bytes=self.on_received_bytes,
-        )
+        SyncServer.current.register_events(log_message=self.on_log_message)
 
     def on_unmount(self):
         # Unregister server events
-        Server.current.unregister_events(
-            log_message=self.on_log_message,
-            received_json=self.on_received_json,
-            received_bytes=self.on_received_bytes,
-        )
+        SyncServer.current.unregister_events(log_message=self.on_log_message)
 
     # Screen
     def compose(self):
@@ -87,14 +78,6 @@ class SyncScreen(Screen):
     def on_log_message(self, error: str):
         # Log
         self.log_message_async(error)
-
-    def on_received_json(self, json: dict):
-        # Log
-        self.log_message_async(f'Received json: {json}')
-
-    def on_received_bytes(self, data: bytes):
-        # Log
-        self.log_message_async(f'Received bytes: {len(data)}')
 
     # Albums
     def load_albums(self):

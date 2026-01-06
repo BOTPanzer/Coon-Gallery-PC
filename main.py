@@ -1,7 +1,8 @@
 from util.library import Library
-from util.util import Util, Server
+from util.util import Util
 from textual.app import App
 from screens.home.home_screen import HomeScreen
+from screens.sync.sync_server import SyncServer
 
 class CoonGallery(App):
 
@@ -27,8 +28,8 @@ class CoonGallery(App):
         Library.load_links()
 
         # Init & start server
-        Server.current = Server()
-        self.run_worker(Server.current.start(), thread=True)
+        SyncServer.current = SyncServer()
+        self.run_worker(SyncServer.current.start(), thread=True)
 
         # Start app in home
         self.push_screen(HomeScreen())

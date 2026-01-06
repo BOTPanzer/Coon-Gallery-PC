@@ -17,7 +17,7 @@ class Util:
                 json.dump(data, f, ensure_ascii=False) # Uglyer but faster and smaller size
 
     @staticmethod
-    def load_json(path: str):
+    def load_json(path: str) -> dict:
         try:
             with open(path, encoding='utf-8') as f:
                 return json.load(f)
@@ -51,24 +51,12 @@ class Util:
 # WebSocket server
 class Server:
 
-    # Singleton
-    current: "Server" = None
-
-
     # Constructor
     def __init__(self):
         # Server
         self.logs = []
         self.is_running = False
         self.current_connection: websockets.ServerConnection = None
-
-        # Events
-        self.events_on_log_message = set()
-        self.events_on_error = set()
-        self.events_on_server_state_changed = set()
-        self.events_on_connection_state_changed = set()
-        self.events_on_received_json = set()
-        self.events_on_received_bytes = set()
 
     # Server logic
     async def start(self, HOST: str = '0.0.0.0', PORT: int = 6969):
@@ -115,7 +103,7 @@ class Server:
             # Wait for data received
             async for message in websocket:
                 if isinstance(message, str):
-                    self.on_received_json(message)
+                    self.on_received_string(message)
                 else:
                     self.on_received_binary(message)
 
@@ -132,47 +120,13 @@ class Server:
             self.on_connection_state_changed(False, client_ip)
 
     # Events
-    def register_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None, received_josn = None, received_bytes = None):
-        if log_message is not None: 
-            self.events_on_log_message.add(log_message)
-        if error is not None: 
-            self.events_on_error.add(error)
-        if server_state_changed is not None: 
-            self.events_on_server_state_changed.add(server_state_changed)
-        if connection_state_changed is not None: 
-            self.events_on_connection_state_changed.add(connection_state_changed)
-        if received_josn is not None: 
-            self.events_on_received_json.add(received_josn)
-        if received_bytes is not None: 
-            self.events_on_received_bytes.add(received_bytes)
-
-    def unregister_events(self, log_message = None, error = None, server_state_changed = None, connection_state_changed = None, received_json = None, received_bytes = None):
-        if log_message is not None: 
-            self.events_on_log_message.discard(log_message)
-        if error is not None: 
-            self.events_on_error.discard(error)
-        if server_state_changed is not None: 
-            self.events_on_server_state_changed.discard(server_state_changed)
-        if connection_state_changed is not None: 
-            self.events_on_connection_state_changed.discard(connection_state_changed)
-        if received_json is not None: 
-            self.events_on_received_json.discard(received_json)
-        if received_bytes is not None: 
-            self.events_on_received_bytes.discard(received_bytes)
-
     def log_message(self, message: str):
         # Log
         self.logs.append(message)
 
-        # Call event
-        for callback in self.events_on_log_message: callback(message)
-
     def on_error(self, error: str):
         # Log
         self.log_message(error)
-
-        # Call event
-        for callback in self.events_on_error: callback(error)
 
     def on_server_state_changed(self, is_running: bool):
         # Log
@@ -181,31 +135,17 @@ class Server:
         else:
             self.log_message(f'Server is now not running')
 
-        # Call event
-        for callback in self.events_on_server_state_changed: callback(is_running)
-
     def on_connection_state_changed(self, is_open: bool, client_ip: str):
         # Log
         if is_open:
-            self.log_message(f'Connection opened with {client_ip}')
+            self.log_message(f'Connected to client {client_ip}')
         else:
-            self.log_message(f'Connection closed with {client_ip}')
+            self.log_message(f'Disconnected from client {client_ip}')
 
-        # Call event
-        for callback in self.events_on_connection_state_changed: callback(is_open, client_ip)
-
-    def on_received_json(self, message: str):
-        try:
-            # Turn the message into a dictionary
-            data = json.loads(message)
-
-            # Call event
-            for callback in self.events_on_received_json: callback(data)
-
-        except json.JSONDecodeError as e:
-            # Failed to parse json
-            self.on_error(f'Failed to parse JSON: {e}')
+    def on_received_string(self, message: str):
+        # Log
+        self.log_message(f'Received string: {len(message)} chars')
 
     def on_received_binary(self, data: bytes):
-        # Call event
-        for callback in self.events_on_received_bytes: callback(data)
+        # Log
+        self.log_message(f'Received bytes: {len(data)} bytes')
