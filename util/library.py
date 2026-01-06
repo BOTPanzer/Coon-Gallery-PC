@@ -1,6 +1,6 @@
 from util.util import Util
 from os import listdir
-from os.path import isfile, exists, getmtime
+from os.path import isfile
 from collections.abc import Callable
 import shutil
 
@@ -15,7 +15,7 @@ class Link:
 
     # Validate
     def isValid(self) -> bool:
-        return exists(self.album_path) and exists(self.metadata_path)
+        return Util.exists_path(self.album_path) and Util.exists_path(self.metadata_path)
 
 # Metadata util
 class MetadataUtil:
@@ -74,20 +74,20 @@ class Album:
     # Metadata
     def load_metadata(self):
         # Check if metadata path exist
-        if not exists(self.metadata_path): return
+        if not Util.exists_path(self.metadata_path): return
 
         # Load metadata
         self.metadata = Util.load_json(self.metadata_path)
 
     def save_metadata(self, backup: bool = True):
         # Check if should backup
-        if backup and exists(self.metadata_path):
+        if backup and Util.exists_path(self.metadata_path):
             # Create new backup path
             metadata_backup_path = ''
             metadata_backup_index = 0
             while True:
                 metadata_backup_path = self.metadata_path + '.backup' + str(metadata_backup_index)
-                if not exists(metadata_backup_path): break
+                if not Util.exists_path(metadata_backup_path): break
                 metadata_backup_index += 1
 
             # Copy to backup path (copy2 preserves timestamps)
@@ -132,7 +132,7 @@ class Album:
     # Album items
     def load_items(self, filter: list[str]):
         # Check if album path exists
-        if not exists(self.album_path): return
+        if not Util.exists_path(self.album_path): return
 
         # Reset items
         self.items: list = []
@@ -143,7 +143,7 @@ class Album:
         unfiltered_items = listdir(self.album_path)
         for item_name in unfiltered_items:
             # Create item path
-            item_path = Util.join(self.album_path, item_name)
+            item_path = Util.join_path(self.album_path, item_name)
 
             # Check if item is a file
             if not isfile(item_path): continue
@@ -169,7 +169,7 @@ class Album:
 
     def sort_items(self): 
         # Sort items by modified date (newest first)
-        self.items.sort(key=lambda item: getmtime(item.path), reverse=True)
+        self.items.sort(key=lambda item: Util.get_last_modified(item.path), reverse=True)
 
     def refresh_items_stats(self):
         # Reset item stats
@@ -213,7 +213,7 @@ class Album:
 class Library:
 
     # Links
-    linksPath: str = Util.join(Util.get_data_path(), 'links.json')
+    linksPath: str = Util.join_path(Util.get_data_path(), 'links.json')
     links: list[Link] = []
 
     @staticmethod

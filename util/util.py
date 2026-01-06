@@ -26,12 +26,24 @@ class Util:
 
     # Paths
     @staticmethod
-    def join(p1, p2):
-        return os.path.join(p1, p2)
+    def join_path(parent, child):
+        return os.path.join(parent, child)
+
+    @staticmethod
+    def exists_path(path):
+        return os.path.exists(path)
+
+    @staticmethod
+    def get_last_modified(path):
+        return os.path.getmtime(path)
+
+    @staticmethod
+    def set_last_modified(path, last_modified):
+        return os.utime(path, (last_modified, last_modified))
 
     @staticmethod
     def get_data_path():
-        return Util.join(pathlib.Path().resolve(), 'data')
+        return Util.join_path(pathlib.Path().resolve(), 'data')
 
     # Network
     @staticmethod
