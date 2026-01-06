@@ -19,7 +19,7 @@ class SettingsScreen(Screen):
         # Init parent
         super().__init__()
 
-    # Screen
+    # Widgets
     def compose(self):
         # Create widgets
         self.w_links = VerticalScroll(id='links-list')

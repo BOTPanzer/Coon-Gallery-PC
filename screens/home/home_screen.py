@@ -10,7 +10,7 @@ class HomeScreen(Screen):
     TITLE = 'Coon Gallery'
 
 
-    # Screen
+    # Widgets
     def compose(self):
         # Create layout
         yield Header()

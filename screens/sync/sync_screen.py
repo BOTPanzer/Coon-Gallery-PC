@@ -1,5 +1,4 @@
 from screens.sync.sync_server import SyncServer
-from util.library import Library
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
 from textual.containers import Vertical, Horizontal, VerticalScroll
@@ -13,7 +12,6 @@ class SyncScreen(Screen):
     # Constructor
     def __init__(self):
         # Widgets
-        self.w_content = None
         self.w_logs = None
 
         # Logs
@@ -31,9 +29,6 @@ class SyncScreen(Screen):
         for log in SyncServer.current.logs:
             self.log_message(f'OLD: {log}')
 
-        # Load albums
-        self.load_albums()
-
         # Register server events
         SyncServer.current.register_events(log_message=self.on_log_message)
 
@@ -41,10 +36,9 @@ class SyncScreen(Screen):
         # Unregister server events
         SyncServer.current.unregister_events(log_message=self.on_log_message)
 
-    # Screen
+    # Widgets
     def compose(self):
         # Create widgets
-        self.w_content = Vertical()
         self.w_logs = VerticalScroll(classes='box')
 
         # Create layout
@@ -52,7 +46,7 @@ class SyncScreen(Screen):
         with Horizontal():
             with Vertical():
                 yield Button(classes='menu_button', id='back', label='Back', variant='error')
-                with self.w_content:
+                with Vertical():
                     yield Label('Sync albums')
                     yield Button(classes='menu_button', id='download-albums', label='Download')
                     yield Label('Sync metadata')
@@ -70,26 +64,10 @@ class SyncScreen(Screen):
             case 'back':
                 self.app.pop_screen()
 
-    def toggleContent(self, show: bool):
-        # Toggle container
-        self.w_content.visible = show
-
     # Events (server)
     def on_log_message(self, error: str):
         # Log
         self.log_message_async(error)
-
-    # Albums
-    def load_albums(self):
-        # Load albums
-        success: bool = Library.load_albums()
-
-        # Check if success
-        if success:
-            self.log_message(f'Loaded {len(Library.albums)} albums successfully')
-        else:
-            self.log_message('Failed to load albums (please check all links in settings have existing paths)')
-        self.toggleContent(success)
 
     # Logs
     def log_message(self, message: str) -> Label:

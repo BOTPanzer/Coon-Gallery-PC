@@ -252,22 +252,20 @@ class Library:
         Library.save_links()
 
     # Albums
-    albums: list[Album] = []
-
-    def load_albums(filter: list[str] = Filter.all) -> bool:
-        # Reset albums
-        Library.albums = []
+    def load_albums(filter: list[str] = Filter.all):
+        # Create albums list
+        albums = []
 
         # Create albums from links
         for link in Library.links:
             # Check if link is valid
             if not link.isValid(): 
                 # Not valid -> Stop loading
-                return False
+                return (False, [])
 
             # Create & add album
             album = Album(link, filter)
-            Library.albums.append(album)
+            albums.append(album)
 
         # Finish loading
-        return True
+        return (True, albums)

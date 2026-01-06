@@ -19,6 +19,9 @@ class MetadataScreen(Screen):
         self.w_info = None
         self.w_logs = None
 
+        # Albums
+        self.albums: list[Album] = []
+
         # Logs
         self.logs_count = 0
 
@@ -33,7 +36,7 @@ class MetadataScreen(Screen):
         # Load albums
         self.load_albums()
 
-    # Screen
+    # Widgets
     def compose(self):
         # Create widgets
         self.w_content = Vertical()
@@ -75,11 +78,12 @@ class MetadataScreen(Screen):
     # Albums
     def load_albums(self):
         # Load albums
-        success: bool = Library.load_albums(Filter.images)
+        success: bool
+        (success, self.albums) = Library.load_albums(Filter.images)
 
         # Check if success
         if success:
-            self.log_message(f'Loaded {len(Library.albums)} albums successfully')
+            self.log_message(f'Loaded {len(self.albums)} albums successfully')
         else:
             self.log_message('Failed to load albums (please check all links in settings have existing paths)')
         self.toggleContent(success)
@@ -87,7 +91,7 @@ class MetadataScreen(Screen):
         # Update albums info
         items_with_metadata: int = 0
         items_without_metadata: int = 0
-        for album in Library.albums:
+        for album in self.albums:
             items_with_metadata += album.items_with_metadata
             items_without_metadata += album.items_without_metadata
         self.update_albums_info(items_with_metadata, items_without_metadata)
@@ -153,7 +157,7 @@ class MetadataScreen(Screen):
             self.log_message_async(path)
 
         # Search albums
-        for album in Library.albums:
+        for album in self.albums:
             # Search album
             album.search(value, on_item_found)
 
@@ -170,7 +174,7 @@ class MetadataScreen(Screen):
     async def execute_option_clean(self):
         # Clean & save albums metadata
         album: Album
-        for album_index, album in enumerate(Library.albums):
+        for album_index, album in enumerate(self.albums):
             # Clean & save album metadata
             self.log_message_async(f'Album {album_index}: Cleaning & saving...')
             album.clean_metadata()
@@ -218,7 +222,7 @@ class MetadataScreen(Screen):
 
         # Loop albums
         album: Album
-        for album_index, album in enumerate(Library.albums):
+        for album_index, album in enumerate(self.albums):
             self.log_message_async(f'Album {album_index}: Checking...')
 
             # Stats
