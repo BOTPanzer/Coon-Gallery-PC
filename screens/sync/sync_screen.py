@@ -62,6 +62,18 @@ class SyncScreen(Screen):
         # Toggle container
         self.w_content.visible = show
 
+    # Albums
+    def load_albums(self):
+        # Load albums
+        success: bool = Library.load_albums()
+
+        # Check if success
+        if success:
+            self.log_message(f'Loaded {len(Library.albums)} albums successfully')
+        else:
+            self.log_message('Failed to load albums (please check all links in settings have existing paths)')
+        self.toggleContent(success)
+
     # Logs
     def log_message(self, message: str) -> Label:
         # Create label
@@ -76,18 +88,13 @@ class SyncScreen(Screen):
         self.w_logs.scroll_end(animate=False)
         return label
 
-    # Albums
-    def load_albums(self):
-        # Load albums
-        success: bool = Library.load_albums()
+    def log_message_async(self, message: str):
+        self.app.call_from_thread(self.log_message, message)
 
-        # Check if success
-        if success:
-            self.log_message(f'Loaded {len(Library.albums)} albums successfully')
-        else:
-            self.log_message('Failed to load albums (please check all links in settings have existing paths)')
-        self.toggleContent(success)
     # Options
     def set_working(self, working, message):
         self.is_working = working
         self.log_message(message)
+
+    def set_working_async(self, working: bool, message: str):
+        self.app.call_from_thread(self.set_working, working, message)

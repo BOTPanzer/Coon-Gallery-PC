@@ -24,6 +24,8 @@ Python dependencies needed to run the app (the ones that i remember at least).
 
 * **pillow** v11.2.1
 
+* **websockets** v15.0.1
+
 Models needed to generate metadata.
 
 * **florence2** (create "./data/florence2" folder and put it inside)

@@ -72,20 +72,6 @@ class MetadataScreen(Screen):
             case 'fix':
                 await self.option_fix()
 
-    # Logs
-    def log_message(self, message: str) -> Label:
-        # Create label
-        label = Label(message, classes='log_even' if self.logs_count % 2 == 0 else 'log_odd')
-        self.logs_count += 1
-
-        # Max logs
-        if len(self.w_logs.children) >= 1000: self.w_logs.children[0].remove()
-
-        # Add new log
-        self.w_logs.mount(label)
-        self.w_logs.scroll_end(animate=False)
-        return label
-
     # Albums
     def load_albums(self):
         # Load albums
@@ -110,10 +96,30 @@ class MetadataScreen(Screen):
         # Update info text
         self.w_info.content = f'· Items with metadata: {items_with_metadata}\n· Items without metadata: {items_without_metadata}'
 
+    # Logs
+    def log_message(self, message: str) -> Label:
+        # Create label
+        label = Label(message, classes='log_even' if self.logs_count % 2 == 0 else 'log_odd')
+        self.logs_count += 1
+
+        # Max logs
+        if len(self.w_logs.children) >= 1000: self.w_logs.children[0].remove()
+
+        # Add new log
+        self.w_logs.mount(label)
+        self.w_logs.scroll_end(animate=False)
+        return label
+
+    def log_message_async(self, message: str):
+        self.app.call_from_thread(self.log_message, message)
+
     # Options
-    def set_working(self, working, message):
+    def set_working(self, working: bool, message: str):
         self.is_working = working
         self.log_message(message)
+
+    def set_working_async(self, working: bool, message: str):
+        self.app.call_from_thread(self.set_working, working, message)
 
     async def option_search(self):
         # Create result event
@@ -144,7 +150,7 @@ class MetadataScreen(Screen):
         def on_item_found(path):
             nonlocal items_found
             items_found += 1
-            self.app.call_from_thread(self.log_message, path)
+            self.log_message_async(path)
 
         # Search albums
         for album in Library.albums:
@@ -152,7 +158,7 @@ class MetadataScreen(Screen):
             album.search(value, on_item_found)
 
         # Finish search
-        self.app.call_from_thread(self.set_working, False, f'Found {items_found} items')
+        self.set_working_async(False, f'Found {items_found} items')
 
     async def option_clean(self):
         # Start cleaning
@@ -166,12 +172,12 @@ class MetadataScreen(Screen):
         album: Album
         for album_index, album in enumerate(Library.albums):
             # Clean & save album metadata
-            self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning & saving...')
+            self.log_message_async(f'Album {album_index}: Cleaning & saving...')
             album.clean_metadata()
             album.save_metadata()
 
         # Finish cleaning
-        self.app.call_from_thread(self.set_working, False, 'Finished cleaning albums metadata')
+        self.set_working_async(False, 'Finished cleaning albums metadata')
 
     async def option_fix(self):
         # Start fixing
@@ -198,7 +204,7 @@ class MetadataScreen(Screen):
             if description_model != None: return
 
             # Load
-            self.app.call_from_thread(self.log_message, 'Loading description model...')
+            self.log_message_async('Loading description model...')
             description_model = DescriptionModel()
 
         def init_text_model():
@@ -207,13 +213,13 @@ class MetadataScreen(Screen):
             if text_model != None: return
 
             # Load
-            self.app.call_from_thread(self.log_message, 'Loading text model...')
+            self.log_message_async('Loading text model...')
             text_model = TextModel()
 
         # Loop albums
         album: Album
         for album_index, album in enumerate(Library.albums):
-            self.app.call_from_thread(self.log_message, f'Album {album_index}: Checking...')
+            self.log_message_async(f'Album {album_index}: Checking...')
 
             # Stats
             album_items_count: int = len(album.items)
@@ -249,13 +255,13 @@ class MetadataScreen(Screen):
                     # Fix caption
                     if fix_caption:
                         # Generate caption
-                        self.app.call_from_thread(self.log_message, f'{item.name}: Generating caption...')
+                        self.log_message_async(f'{item.name}: Generating caption...')
                         item_metadata['caption'] = description_model.generate_caption(item_image)
 
                     # Fix labels
                     if fix_labels:
                         # Generate labels
-                        self.app.call_from_thread(self.log_message, f'{item.name}: Generating labels...')
+                        self.log_message_async(f'{item.name}: Generating labels...')
                         item_metadata['labels'] = description_model.generate_labels(item_image)
 
                     # Mark item as modified
@@ -267,7 +273,7 @@ class MetadataScreen(Screen):
                     init_text_model()
 
                     # Generate text
-                    self.app.call_from_thread(self.log_message, f'{item.name}: Generating text...')
+                    self.log_message_async(f'{item.name}: Generating text...')
                     item_metadata['text'] = text_model.detect_text(item_image)
 
                     # Mark item as modified
@@ -288,7 +294,7 @@ class MetadataScreen(Screen):
                     # Save every x items and if item isn't the last of the album
                     if (album_items_fixed % save_every == 0) and (item_index < album_items_count - 1):
                         # Save album metadata
-                        self.app.call_from_thread(self.log_message, f'Album {album_index}: Saving (fast save)...')
+                        self.log_message_async(f'Album {album_index}: Saving (fast save)...')
                         album.save_metadata(backup=not was_album_saved) # Create backup only first save
 
                         # Mark album as saved
@@ -297,7 +303,7 @@ class MetadataScreen(Screen):
             # Check if album was modified
             if was_album_modified:
                 # Clean & save album metadata
-                self.app.call_from_thread(self.log_message, f'Album {album_index}: Cleaning & saving...')
+                self.log_message_async(f'Album {album_index}: Cleaning & saving...')
                 album.clean_metadata() # Cleaning sorts the keys too
                 album.save_metadata(backup=not was_album_saved) # Create backup only first save
 
@@ -305,4 +311,4 @@ class MetadataScreen(Screen):
         self.update_albums_info(total_items_count, 0)
 
         # Finish fixing
-        self.app.call_from_thread(self.set_working, False, f'Finished fixing albums metadata (fixed {total_items_fixed})')
+        self.app.set_working_async(False, f'Finished fixing albums metadata (fixed {total_items_fixed})')
