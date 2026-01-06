@@ -1,6 +1,8 @@
-from util.library import Album
+from util.library import Album, Library
 from util.util import Server
 from dataclasses import dataclass, field
+from os.path import getmtime
+from pathlib import Path
 import json
 
 # Sync server
@@ -143,20 +145,89 @@ class SyncServer(Server):
         self.log_message('Received client albums list')
 
     def action_received_file_info(self, data):
-        # Log
-        self.log_message('action_received_file_info is not implemented')
+        # Check if info is for the current request
+        request = self.app.request
+        if request.albumIndex is not data['albumIndex'] or request.fileIndex is not data['fileIndex']: return
+
+        # Check if info is valid
+        if 'lastModified' not in data: 
+            # Invalid info -> Request next
+            ''' galleryRequestQueueFiles() '''
+            return
+
+        # Save info
+        request.lastModified = data['lastModified']
+        request.size = data['size']
+        request.parts = data['parts']
+        request.maxPartSize = data['maxPartSize']
+
+        # Request data
+        self.connection.send(json.dumps({
+            'action': 'requestFileData',
+            'albumIndex': request.albumIndex,
+            'fileIndex': request.fileIndex,
+            'part': request.partIndex
+        }))
 
     def action_received_metadata_info(self, data):
-        # Log
-        self.log_message('action_received_metadata_info is not implemented')
+        # Check if info is for the current request
+        request = self.app.request
+        if request.albumIndex is not data['albumIndex']: return
+
+        # Check if info is valid
+        if 'lastModified' not in data: 
+            # Invalid info -> Request next
+            ''' galleryRequestQueueFiles() '''
+            return
+
+        # Save info
+        request.lastModified = data['lastModified']
+
+        # Request data
+        self.connection.send(json.dumps({
+            'action': 'requestMetadataData',
+            'albumIndex': request.albumIndex
+        }))
 
     def action_send_metadata_info(self, data):
-        # Log
-        self.log_message('action_send_metadata_info is not implemented')
+        # Get info
+        albumIndex = data['albumIndex']
+
+        # Get file
+        metadataFile = Library.links[albumIndex].metadata_path
+
+        # Send info
+        self.connection.send(json.dumps({
+            'action': 'metadataInfo',
+            'albumIndex': albumIndex,
+            'lastModified': getmtime(metadataFile)
+        }))
 
     def action_send_metadata_data(self, data):
-        # Log
-        self.log_message('action_send_metadata_data is not implemented')
+        # Get info
+        albumIndex = data['albumIndex']
+
+        # Get file
+        metadataFile = Library.links[albumIndex].metadata_path
+
+        # Send info
+        self.connection.send(Path(metadataFile).read_bytes())
+
+# Sync info (requests)
+@dataclass
+class SyncRequestInfo:
+    # Indexes
+    albumIndex: int = -1,
+    fileIndex: int = -1,
+    partIndex: int = 0
+
+    # File info
+    lastModified: int = -1,
+    size: int = 0
+
+    # Parts info
+    parts: int = 0
+    maxPartSize: int = 0
 
 # Sync info (app)
 @dataclass
@@ -166,6 +237,13 @@ class SyncAppInfo:
 
     # Albums
     albums: list[Album] = field(default_factory=list)
+
+    # File request
+    request: SyncRequestInfo = SyncRequestInfo()
+
+    # Queue info
+    queue: list = field(default_factory=list),
+    queueSize: int = 0
 
 # Sync info (client)
 @dataclass

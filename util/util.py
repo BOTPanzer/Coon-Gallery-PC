@@ -56,7 +56,7 @@ class Server:
         # Server
         self.logs = []
         self.is_running = False
-        self.current_connection: websockets.ServerConnection = None
+        self.connection: websockets.ServerConnection = None
 
     # Server logic
     async def start(self, HOST: str = '0.0.0.0', PORT: int = 6969):
@@ -88,14 +88,14 @@ class Server:
         client_ip = websocket.remote_address[0]
 
         # Only allow 1 connection
-        if self.current_connection is not None:
+        if self.connection is not None:
             self.log_message(f'Connection from {client_ip} refused, only 1 connection is allowed')
             await websocket.send('Only 1 connection allowed at a time')
             await websocket.close()
             return
 
         # Save connection
-        self.current_connection = websocket
+        self.connection = websocket
         self.on_connection_state_changed(True, client_ip)
 
         # Listen for messages
@@ -116,7 +116,7 @@ class Server:
         # Finished
         finally:
             # Free connection
-            self.current_connection = None
+            self.connection = None
             self.on_connection_state_changed(False, client_ip)
 
     # Events

@@ -54,7 +54,7 @@ class SyncScreen(Screen):
                     yield Button(classes='menu_button', id='upload-metadata', label='Upload')
             yield self.w_logs
 
-    # Events (screen)
+    # Events
     def on_button_pressed(self, event: Button.Pressed):
         # Check if working
         if self.is_working: return
@@ -64,7 +64,6 @@ class SyncScreen(Screen):
             case 'back':
                 self.app.pop_screen()
 
-    # Events (server)
     def on_log_message(self, error: str):
         # Log
         self.log_message_async(error)

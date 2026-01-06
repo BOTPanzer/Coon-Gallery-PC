@@ -1,6 +1,6 @@
 from util.util import Util
 from os import listdir
-from os.path import  isfile, exists, getmtime
+from os.path import isfile, exists, getmtime
 from collections.abc import Callable
 import shutil
 
