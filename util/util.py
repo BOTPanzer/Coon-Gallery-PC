@@ -73,6 +73,11 @@ class Server:
 
     # Server logic
     async def start(self, HOST: str = '0.0.0.0', PORT: int = 6969):
+        # Check if already running
+        if self.is_running:
+            self.log_message('Server is already running')
+            return
+
         # Log starting
         self.log_message(f'Starting server in {Util.get_local_ip()}:{PORT}...')
 
@@ -107,7 +112,6 @@ class Server:
         # Only allow 1 connection
         if self.is_connected:
             self.log_message(f'Connection from {client_ip} refused, only 1 connection is allowed')
-            await websocket.send('Only 1 connection allowed at a time')
             await websocket.close()
             return
 

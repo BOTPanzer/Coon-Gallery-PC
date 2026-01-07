@@ -44,6 +44,7 @@ class SyncScreen(Screen):
             with Vertical():
                 yield Button(classes='menu_button', id='back', label='Back', variant='error')
                 with Vertical():
+                    yield Button(classes='menu_button', id='start-server', label='Start server')
                     yield Label('Sync albums')
                     yield Button(classes='menu_button', id='download-albums', label='Download')
                     yield Label('Sync metadata')
@@ -57,6 +58,8 @@ class SyncScreen(Screen):
         match event.button.id:
             case 'back':
                 self.app.pop_screen()
+            case 'start-server':
+                self.run_worker(SyncServer.current.start(), thread=True)
             case 'download-albums':
                 self.run_worker(SyncServer.current.download_albums, thread=True)
             case 'download-metadata':
