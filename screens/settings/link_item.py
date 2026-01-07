@@ -31,13 +31,13 @@ class LinkItem(Static):
         with self.w_container:
             yield self.w_name
             with Horizontal():
-                yield Button(id='remove-link', classes='link_button', label='X', variant='error')
+                yield Button(id='remove-link', classes='link_button', label='X', variant='error', tooltip='Delete link')
                 with Vertical():
                     with Horizontal():
-                        yield Button(id='select-album', classes='link_button link_folder', label='📁')
+                        yield Button(id='select-album', classes='link_button link_folder', label='📁', tooltip='Select album folder')
                         yield self.w_input_album
                     with Horizontal():
-                        yield Button(id='select-metadata', classes='link_button link_folder', label='📁')
+                        yield Button(id='select-metadata', classes='link_button link_folder', label='📁', tooltip='Select metadata file')
                         yield self.w_input_metadata
 
     # Events

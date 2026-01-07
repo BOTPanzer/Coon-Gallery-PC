@@ -1,5 +1,5 @@
 from textual.screen import Screen
-from textual.widgets import Header, Button
+from textual.widgets import Header, Label, Button
 from screens.settings.settings_screen import SettingsScreen
 from screens.sync.sync_screen import SyncScreen
 from screens.metadata.metadata_screen import MetadataScreen
@@ -7,13 +7,22 @@ from screens.metadata.metadata_screen import MetadataScreen
 class HomeScreen(Screen):
 
     # Info
-    TITLE = 'Coon Gallery'
+    TITLE = 'Home'
 
 
     # Widgets
     def compose(self):
         # Create layout
         yield Header()
+        yield Label("""
+   ___                        ___         _   _                  
+  /  _)                      /  _)       | | | |                 
+ |      __   __   _  _      |    _  __,  | | | |  _   ,_         
+ |     /  \_/  \_/ |/ |     |     |/  |  |/  |/  |/  /  |  |   | 
+  \___/\__/ \__/   |  |_/    \___/ \_/|_/|__/|__/|__/   |_/ \_/|_/
+                                                            /| 
+                                                            \| 
+        """)
         yield Button(classes='menu_button', id='exit', label='Exit', variant='error')
         yield Button(classes='menu_button', id='settings', label='Settings')
         yield Button(classes='menu_button', id='metadata', label='Metadata')
