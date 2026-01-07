@@ -36,8 +36,10 @@ class SettingsScreen(Screen):
     # Events
     def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
+            # Back
             case 'back':
                 self.app.pop_screen()
+            # Add a new link
             case 'add-link':
                 self.add_link()
 

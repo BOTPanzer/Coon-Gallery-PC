@@ -2,6 +2,7 @@ from textual.screen import Screen
 from textual.widgets import Header, Label, Button
 from screens.settings.settings_screen import SettingsScreen
 from screens.sync.sync_screen import SyncScreen
+from screens.sync.sync_server import SyncServer
 from screens.metadata.metadata_screen import MetadataScreen
 
 class HomeScreen(Screen):
@@ -31,11 +32,18 @@ class HomeScreen(Screen):
     # Events
     def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
+            # Exit
             case 'exit':
                 self.app.exit()
+            # Settings menu
             case 'settings':
                 self.app.push_screen(SettingsScreen())
+            # Metadata menu
             case 'metadata':
-                self.app.push_screen(MetadataScreen())
+                if SyncServer.current.is_syncing: 
+                    self.app.notify('Can\'t open metadata menu while syncing with phone')
+                else:
+                    self.app.push_screen(MetadataScreen())
+            # Sync menu
             case 'sync':
                 self.app.push_screen(SyncScreen())

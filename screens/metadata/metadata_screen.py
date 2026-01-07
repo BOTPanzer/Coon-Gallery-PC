@@ -65,19 +65,31 @@ class MetadataScreen(Screen):
 
     # Events
     async def on_button_pressed(self, event: Button.Pressed):
-        # Check if working
-        if self.is_working: return
-
-        # Check button
         match event.button.id:
+            # Back
             case 'back':
-                self.app.pop_screen()
+                if self.is_working: 
+                    self.app.notify('Can\'t exit until the current action finishes')
+                else:
+                    self.app.pop_screen()
+            # Search albums
             case 'search':
-                await self.option_search()
+                if self.is_working: 
+                    self.app.notify('Wait until the current action finishes')
+                else:
+                    await self.option_search()
+            # Clean metadata
             case 'clean':
-                await self.option_clean()
+                if self.is_working: 
+                    self.app.notify('Wait until the current action finishes')
+                else:
+                    await self.option_clean()
+            # Fix metadata
             case 'fix':
-                await self.option_fix()
+                if self.is_working: 
+                    self.app.notify('Wait until the current action finishes')
+                else:
+                    await self.option_fix()
 
     # Albums
     def load_albums(self):

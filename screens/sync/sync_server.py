@@ -103,6 +103,10 @@ class SyncServer(Server):
         # Call parent function
         super().on_server_state_changed(is_running)
 
+        # Stop suyncing if connection was closed
+        if not is_running: 
+            self.set_syncing(False)
+
         # Call event
         for callback in self.events_on_server_state_changed: callback(is_running)
 
@@ -110,7 +114,7 @@ class SyncServer(Server):
         # Call parent function
         super().on_connection_state_changed(is_open, client_ip)
 
-        # Reset info if connection was closed
+        # Stop suyncing & reset info if connection was closed
         if not is_open: 
             self.set_syncing(False)
             self.reset_info()

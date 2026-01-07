@@ -76,16 +76,20 @@ class SyncScreen(Screen):
 
     # Events
     def on_button_pressed(self, event: Button.Pressed):
-        # Check button
         match event.button.id:
+            # Back
             case 'back':
                 self.app.pop_screen()
+            # Start server
             case 'start-server':
                 self.run_worker(SyncServer.current.start(), thread=True)
+            # Download albums
             case 'download-albums':
                 self.run_worker(SyncServer.current.download_albums, thread=True)
+            # Download metadata
             case 'download-metadata':
                 self.run_worker(SyncServer.current.download_metadata, thread=True)
+            # Upload metadata
             case 'upload-metadata':
                 self.run_worker(SyncServer.current.upload_metadata, thread=True)
 
