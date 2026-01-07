@@ -248,13 +248,13 @@ class MetadataScreen(Screen):
 
                 if not fix_caption and not fix_labels and not fix_text: continue
 
-                # Load image
-                item_image: ImageFile = Image.open(item.path)
-
                 # Check if description model is needed
                 if fix_caption or fix_labels:
                     # Is needed -> Make sure its init
                     init_description_model()
+
+                    # Load image
+                    item_image: ImageFile = Image.open(item.path)
 
                     # Fix caption
                     if fix_caption:
@@ -278,7 +278,7 @@ class MetadataScreen(Screen):
 
                     # Generate text
                     self.log_message_async(f'{item.name}: Generating text...')
-                    item_metadata['text'] = text_model.detect_text(item_image)
+                    item_metadata['text'] = text_model.detect_text(item.path)
 
                     # Mark item as modified
                     was_item_modified = True
@@ -315,4 +315,4 @@ class MetadataScreen(Screen):
         self.update_info(total_items_count, 0)
 
         # Finish fixing
-        self.app.set_working_async(False, f'Finished fixing albums metadata (fixed {total_items_fixed})')
+        self.set_working_async(False, f'Finished fixing albums metadata (fixed {total_items_fixed})')

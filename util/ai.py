@@ -1,7 +1,5 @@
 from util.util import Util
-import numpy as np
-from PIL import Image, ImageFile
-import cv2
+from PIL import ImageFile
 
 # Description generation model
 class DescriptionModel:
@@ -36,7 +34,7 @@ class DescriptionModel:
     def generate_caption(self, image: ImageFile) -> str:
         return self.run(image, '<MORE_DETAILED_CAPTION>').strip() # <CAPTION> <DETAILED_CAPTION>
 
-    def generate_labels(self, image: ImageFile) -> list:
+    def generate_labels(self, image: ImageFile) -> list[str]:
         return list(set(self.run(image, '<OD>')['labels'])) # list(set()) removes 
 
 # Text detection model
@@ -45,23 +43,27 @@ class TextModel:
     def __init__(self):
         # Import libraries
         import torch
-        from paddleocr import PaddleOCR # pip install paddlepaddle paddleocr
+        from doctr.models import ocr_predictor
 
-        # Load model
-        self.model = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False, show_log=False)
+        # Load reader
+        self.model = ocr_predictor(
+            det_arch='db_resnet50', 
+            reco_arch='crnn_vgg16_bn', 
+            pretrained=True, 
+            assume_straight_pages=False,
+            straighten_pages=True,       # Fixes tilted/angled photos
+            preserve_aspect_ratio=True   # Prevents stretching of photos
+        )
 
-    def detect_text(self, image: ImageFile):
-        # Detect text in image
-        numpy_image = np.array(image.convert('RGB'))
-        numpy_image_cv2 = cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR) # Convert to BGR
-        result = self.model.ocr(numpy_image_cv2, cls=True)
-        texts = []
-        for result in result:
-            if result == None: continue
-            for region in result:
-                textAndConfidence = region[1] # [0] = text, [1] = confidence
-                text = textAndConfidence[0].strip()
-                confidence = textAndConfidence[1]
-                if confidence > 0.5:
-                    texts.append(text)
-        return texts
+        # Enable cuda if available
+        if torch.cuda.is_available(): self.model.cuda()
+
+    def detect_text(self, image_path: str) -> list[str]:
+        from doctr.io import DocumentFile
+
+        # Analyze the document
+        result = self.model(DocumentFile.from_images(image_path))
+
+        # Parse text
+        full_text = result.render() # human-readable string of all text found
+        return [line.strip() for line in full_text.split('\n') if line.strip()] # Split by newlines to return a list of strings

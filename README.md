@@ -6,27 +6,16 @@ Fill this later.
 
 ## Dependencies
 
-Python dependencies needed to run the app (the ones that i remember at least).
+Dependencies needed to run the app (using other versions may work but these are the ones tested):
 
-* **textual** v6.11.0
-
-* **transformers** v4.51.3
-
-* **[pytorch](https://pytorch.org/get-started/locally/)** v2.9.1
-
-* **paddlepaddle** v3.0.0
-
-* **paddleocr** v2.10.0
-
-* **opencv-python** v4.11.0.86
-
-* **numpy** v2.2.5
-
-* **pillow** v11.2.1
-
+* **Python** v3.13.11
+* **textual** v7.0.0
 * **websockets** v15.0.1
+* **transformers** v4.57.3
+* **[pytorch](https://pytorch.org/get-started/locally/)** v2.9.1
+* **python-doctr** 1.0.0
 
-Models needed to generate metadata.
+Models needed to generate metadata:
 
 * **florence2** (create "./data/florence2" folder and put it inside)
 
