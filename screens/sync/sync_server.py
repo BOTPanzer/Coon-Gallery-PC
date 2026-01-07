@@ -421,13 +421,13 @@ class SyncServer(Server):
 
         # Load albums
         success: bool
-        (success, self.host.albums) = Library.load_albums()
+        (success, self.host.albums) = Library.load_albums(validate_metadata=False)
 
         # Check if albums were loaded
         if not success:
             # Failed to load albums -> Stop syncing
             self.set_syncing(False)
-            self.log_message('Download cancelled, make sure all link folders exist')
+            self.log_message('Download cancelled, make sure all link album folders exist')
             return
 
         # Check albums sizes

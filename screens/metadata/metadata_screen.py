@@ -144,7 +144,7 @@ class MetadataScreen(Screen):
             self.run_worker(self.execute_option_search(value), thread=True)
 
         # Create dialog
-        self.app.push_screen(InputDialog(placeholder=f'What do you wanna search?'), on_result)
+        self.app.push_screen(InputDialog(placeholder=f'What do you want to search?'), on_result)
 
     async def execute_option_search(self, value: str):
         # Create found items count
@@ -208,7 +208,7 @@ class MetadataScreen(Screen):
             if description_model != None: return
 
             # Load
-            self.log_message_async('Loading description model...')
+            self.log_message_async('Loading description model (this may take a while)...')
             description_model = DescriptionModel()
 
         def init_text_model():

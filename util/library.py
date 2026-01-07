@@ -14,8 +14,14 @@ class Link:
         self.metadata_path = metadata_path
 
     # Validate
-    def isValid(self) -> bool:
-        return Util.exists_path(self.album_path) and Util.exists_path(self.metadata_path)
+    def is_album_valid(self) -> bool:
+        return Util.exists_path(self.album_path)
+
+    def is_metadata_valid(self) -> bool:
+        return Util.exists_path(self.metadata_path)
+
+    def is_valid(self) -> bool:
+        return self.is_album_valid() and self.is_metadata_valid()
 
 # Metadata util
 class MetadataUtil:
@@ -252,14 +258,14 @@ class Library:
         Library.save_links()
 
     # Albums
-    def load_albums(filter: list[str] = Filter.all):
+    def load_albums(filter: list[str] = Filter.all, validate_metadata: bool = True):
         # Create albums list
         albums = []
 
         # Create albums from links
         for link in Library.links:
             # Check if link is valid
-            if not link.isValid(): 
+            if (validate_metadata and not link.is_valid()) or (not validate_metadata and not link.is_album_valid()): 
                 # Not valid -> Stop loading
                 return (False, [])
 
