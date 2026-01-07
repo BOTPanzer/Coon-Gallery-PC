@@ -20,7 +20,7 @@ Backup your albums and enable smart searching in the [Coon Gallery](https://gith
   
   * Modified your metadata somewhere? You can move it from one device to another!
 
-## Setup: Run
+## How to Run
 
 This app was made using **Python 3.13.11**, other versions may work but aren't tested. To run the app:
 
@@ -36,13 +36,13 @@ This app was made using **Python 3.13.11**, other versions may work but aren't t
    `pip install name==version`
    
    Using other versions may work but these are the ones used while developing the app:
-   1. textual (7.0.0)
-   2. websockets (15.0.1)
-   3. transformers (4.53.3, newer versions will throw errors)
-   4. [pytorch](https://pytorch.org/get-started/locally/) (2.9.1, select the best option for your gpu)
-   5. einops (0.8.1)
-   6. timm (1.0.24)
-   7. python-doctr (1.0.0)
+   - textual (7.0.0)
+   - websockets (15.0.1)
+   - transformers (4.53.3, newer versions will throw errors)
+   - [pytorch](https://pytorch.org/get-started/locally/) (2.9.1, select the best option for your gpu)
+   - einops (0.8.1)
+   - timm (1.0.24)
+   - python-doctr (1.0.0)
 3. **Running the app**
    
    You can run the app by opening:
@@ -50,6 +50,7 @@ This app was made using **Python 3.13.11**, other versions may work but aren't t
    `run.bat`
    
    or by running:
+   
    `python main.py`
 
 The app should now run, but generating metadata wont work yet. For that, it is necessary to download **Florence2** as the description model.
@@ -76,11 +77,17 @@ The app should now run, but generating metadata wont work yet. For that, it is n
    └─ main.py
    ```
 
-## Setup: Use
+## How to Use
 
-The app is divided into different menus:
+The app is divided into different menus.
 
-- **Settings**
+### Home
+
+  This is the menu where you are greeted after opening the app. You can use it to navigate to other menus or exit the app.
+
+![Home Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/home.png)
+
+### Settings
   
   Here you will be able to setup *links*, which are connections between an *album folder* and a *metadata file*. 
   
@@ -90,9 +97,11 @@ The app is divided into different menus:
   
   Note: links should be in the same order as in the phone app.
 
-- **Metadata**
+![Settings Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/settings.png)
+
+### Metadata
   
-  Here is where you can generate information about your images and search. There are 3 different actions to perform.
+  Here is where you can search and generate information about your images. There are 3 different actions to perform.
   
   - **Search albums:** asks for a text input and searches in your albums to find images that contain it. If you search for "cat", images containing a cat will appear.
   
@@ -106,7 +115,9 @@ The app is divided into different menus:
     
     - A list of text detected in the image.
 
-- **Sync**
+![Metadata Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/metadata.png)
+
+### Sync
   
   The app has a server running in the background so that the phone app can connect to it. This menu lets you perform actions when the phone is connected.
   
@@ -117,3 +128,5 @@ The app is divided into different menus:
   - **Download metadata:** updates the metadata files from your computer with the ones in your phone.
   
   - **Upload metadata:** updates the metadata files from your phone with the ones in your computer.
+
+![Sync Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/sync.png)
