@@ -14,11 +14,15 @@ LinkItem {
     height: 7;
 }
 
-LinkItem .folder {
+.link_button {
     min-width: 7;
 }
 
-LinkItem .path {
+.link_folder {
+    margin-left: 1;
+}
+
+.link_path {
     width: 1fr;
 }
 
@@ -26,12 +30,12 @@ LinkItem .path {
     min-height: 9;
 }
 
-/* Log zebra stripes */
-.log_even {
+/* Zebra stripes */
+.zebra_even {
     width: 100%;
 }
 
-.log_odd {
+.zebra_odd {
     width: 100%;
     background: $boost;
 }

@@ -20,10 +20,12 @@ class CoonGallery(App):
 
     # Style
     CSS_PATH = Util.join_path('styles', 'main.tcss')
-    #theme = "rose-pine" # Use rose-pine as default theme
 
     # State
     def on_mount(self):
+        # Use rose-pine as default theme
+        self.theme = "rose-pine"
+
         # Load links
         Library.load_links()
 

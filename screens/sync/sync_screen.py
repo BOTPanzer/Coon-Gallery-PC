@@ -58,12 +58,12 @@ class SyncScreen(Screen):
                 yield Button(classes='menu_button', id='back', label='Back', variant='error')
                 with Vertical():
                     yield self.w_info
-                    yield Button(classes='menu_button', id='start-server', label='Start server')
+                    yield Button(classes='menu_button', id='start-server', label='Start server', tooltip='Starts the sync server if it\'s not running')
                     yield Label('Sync albums')
-                    yield Button(classes='menu_button', id='download-albums', label='Download')
+                    yield Button(classes='menu_button', id='download-albums', label='Download', tooltip='Updates the albums in this system with the ones in the client')
                     yield Label('Sync metadata')
-                    yield Button(classes='menu_button', id='download-metadata', label='Download')
-                    yield Button(classes='menu_button', id='upload-metadata', label='Upload')
+                    yield Button(classes='menu_button', id='download-metadata', label='Download', tooltip='Updates the metadata in this system with the one in the client')
+                    yield Button(classes='menu_button', id='upload-metadata', label='Upload', tooltip='Updates the metadata in the client with the one in this system')
             yield self.w_logs
 
     def update_info(self):
@@ -102,7 +102,7 @@ class SyncScreen(Screen):
     # Logs
     def log_message(self, message: str) -> Label:
         # Create label
-        label = Label(message, classes='log_even' if self.logs_count % 2 == 0 else 'log_odd')
+        label = Label(message, classes='zebra_even' if self.logs_count % 2 == 0 else 'zebra_odd')
         self.logs_count += 1
 
         # Max logs

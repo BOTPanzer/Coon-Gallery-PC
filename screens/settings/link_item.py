@@ -14,6 +14,7 @@ class LinkItem(Static):
         self.index: int = index
         self.on_modify: Callable[[], None] = on_modify
         self.on_remove: Callable[[LinkItem], None] = on_remove
+        self.is_removed: bool = False
 
         # Init parent
         super().__init__()
@@ -21,30 +22,30 @@ class LinkItem(Static):
     # Widget
     def compose(self):
         # Create widgets
-        self.w_name = Label(f'Link {self.index}')
-        self.w_input_album = Input(id='album', classes='path', placeholder="Album folder path", value=self.link.album_path)
-        self.w_input_metadata = Input(id='metadata', classes='path', placeholder='Metadata file path', value=self.link.metadata_path)
+        self.w_container = Vertical()
+        self.w_name = Label(content=f'Link {self.index}')
+        self.w_input_album = Input(id='album', classes='link_path', placeholder="Album folder path", value=self.link.album_path)
+        self.w_input_metadata = Input(id='metadata', classes='link_path', placeholder='Metadata file path', value=self.link.metadata_path)
 
         # Create layout
-        with Vertical():
+        with self.w_container:
             yield self.w_name
             with Horizontal():
-                yield Button(id='remove-link', label='Remove', variant='error')
+                yield Button(id='remove-link', classes='link_button', label='X', variant='error')
                 with Vertical():
                     with Horizontal():
+                        yield Button(id='select-album', classes='link_button link_folder', label='📁')
                         yield self.w_input_album
-                        yield Button(id='select-album', classes='folder', label='📁')
                     with Horizontal():
+                        yield Button(id='select-metadata', classes='link_button link_folder', label='📁')
                         yield self.w_input_metadata
-                        yield Button(id='select-metadata', classes='folder', label='📁')
 
     # Events
     def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
             case 'remove-link':
-                event.stop()            # Stop the event from bubbling up to the screen
-                self.removed = True     # Mark as removed
-                self.on_remove(self)    # Call on remove
+                event.stop() # Stop the event from bubbling up to the screen
+                self.on_remove(self)
             case 'select-album':
                 # Open explorer
                 root = tk.Tk()

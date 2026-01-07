@@ -62,13 +62,14 @@ class SettingsScreen(Screen):
             if not remove: return
 
             # Remove link
-            self.app.remove_link(link_item.link)
+            Library.remove_link(link_item.link)
+            link_item.is_removed = True
             link_item.remove() # Remove widget from UI
 
             # Update link items
-            remaining_items = [ child for child in self.w_links.query(LinkItem) if not getattr(child, 'removed', False) ]
+            remaining_items = [ child for child in self.w_links.query(LinkItem) if not getattr(child, 'is_removed', False) ]
             for index, item in enumerate(remaining_items):
                 item.update_index(index)
 
         # Create dialog
-        self.app.push_screen(ConfirmDialog(f'Are you sure you want to remove Link {link_item.index}?'), on_result)
+        self.app.push_screen(ConfirmDialog(f'Are you sure you want to delete Link {link_item.index}?'), on_result)

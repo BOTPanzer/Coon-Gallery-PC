@@ -103,7 +103,7 @@ class MetadataScreen(Screen):
     # Logs
     def log_message(self, message: str) -> Label:
         # Create label
-        label = Label(message, classes='log_even' if self.logs_count % 2 == 0 else 'log_odd')
+        label = Label(message, classes='zebra_even' if self.logs_count % 2 == 0 else 'zebra_odd')
         self.logs_count += 1
 
         # Max logs
