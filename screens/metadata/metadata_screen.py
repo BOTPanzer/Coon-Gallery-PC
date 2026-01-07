@@ -55,9 +55,13 @@ class MetadataScreen(Screen):
                     yield Button(classes='menu_button', id='fix', label='Fix metadata', tooltip='Creates metadata for all missing files or fields')
             yield self.w_logs
 
-    def toggleContent(self, show: bool):
+    def toggle_content(self, show: bool):
         # Toggle container
         self.w_content.visible = show
+
+    def update_info(self, items_with_metadata, items_without_metadata):
+        # Update info text
+        self.w_info.content = f'· Items with metadata: {items_with_metadata}\n· Items without metadata: {items_without_metadata}'
 
     # Events
     async def on_button_pressed(self, event: Button.Pressed):
@@ -86,7 +90,7 @@ class MetadataScreen(Screen):
             self.log_message(f'Loaded {len(self.albums)} albums successfully')
         else:
             self.log_message('Failed to load albums (please check all links in settings have existing paths)')
-        self.toggleContent(success)
+        self.toggle_content(success)
 
         # Update albums info
         items_with_metadata: int = 0
@@ -94,11 +98,7 @@ class MetadataScreen(Screen):
         for album in self.albums:
             items_with_metadata += album.items_with_metadata
             items_without_metadata += album.items_without_metadata
-        self.update_albums_info(items_with_metadata, items_without_metadata)
-
-    def update_albums_info(self, items_with_metadata, items_without_metadata):
-        # Update info text
-        self.w_info.content = f'· Items with metadata: {items_with_metadata}\n· Items without metadata: {items_without_metadata}'
+        self.update_info(items_with_metadata, items_without_metadata)
 
     # Logs
     def log_message(self, message: str) -> Label:
@@ -312,7 +312,7 @@ class MetadataScreen(Screen):
                 album.save_metadata(backup=not was_album_saved) # Create backup only first save
 
         # Update albums info
-        self.update_albums_info(total_items_count, 0)
+        self.update_info(total_items_count, 0)
 
         # Finish fixing
         self.app.set_working_async(False, f'Finished fixing albums metadata (fixed {total_items_fixed})')

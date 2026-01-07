@@ -12,6 +12,7 @@ class SyncScreen(Screen):
     # Constructor
     def __init__(self):
         # Widgets
+        self.w_info = None
         self.w_logs = None
 
         # Logs
@@ -22,20 +23,32 @@ class SyncScreen(Screen):
 
     # State
     def on_mount(self):
+        # Update server info
+        self.update_info()
+
         # Show previous server logs
         for log in SyncServer.current.logs:
             self.log_message(log)
 
         # Register server events
-        SyncServer.current.register_events(log_message=self.on_log_message)
+        SyncServer.current.register_events(
+            log_message=self.on_log_message, 
+            server_state_changed=self.on_server_state_changed, 
+            connection_state_changed=self.on_connection_state_changed
+        )
 
     def on_unmount(self):
         # Unregister server events
-        SyncServer.current.unregister_events(log_message=self.on_log_message)
+        SyncServer.current.unregister_events(
+            log_message=self.on_log_message, 
+            server_state_changed=self.on_server_state_changed, 
+            connection_state_changed=self.on_connection_state_changed
+        )
 
     # Widgets
     def compose(self):
         # Create widgets
+        self.w_info = Label(classes='box')
         self.w_logs = VerticalScroll(classes='box')
 
         # Create layout
@@ -44,6 +57,7 @@ class SyncScreen(Screen):
             with Vertical():
                 yield Button(classes='menu_button', id='back', label='Back', variant='error')
                 with Vertical():
+                    yield self.w_info
                     yield Button(classes='menu_button', id='start-server', label='Start server')
                     yield Label('Sync albums')
                     yield Button(classes='menu_button', id='download-albums', label='Download')
@@ -51,6 +65,14 @@ class SyncScreen(Screen):
                     yield Button(classes='menu_button', id='download-metadata', label='Download')
                     yield Button(classes='menu_button', id='upload-metadata', label='Upload')
             yield self.w_logs
+
+    def update_info(self):
+        # Get info
+        is_running = '🟢' if SyncServer.current.is_running else '🔴'
+        is_connected = '🟢' if SyncServer.current.is_connected else '🔴'
+
+        # Update info text
+        self.w_info.content = f'· Server running: {is_running}\n· Client connected: {is_connected}'
 
     # Events
     def on_button_pressed(self, event: Button.Pressed):
@@ -70,6 +92,12 @@ class SyncScreen(Screen):
     def on_log_message(self, error: str):
         # Log
         self.log_message_async(error)
+
+    def on_server_state_changed(self, is_running: bool):
+        self.update_info()
+
+    def on_connection_state_changed(self, is_open: bool, client_ip: str):
+        self.update_info()
 
     # Logs
     def log_message(self, message: str) -> Label:
