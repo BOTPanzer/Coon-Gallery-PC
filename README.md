@@ -2,11 +2,13 @@
 
 Backup your albums and enable smart searching in the [Coon Gallery](https://github.com/BOTPanzer/Coon-Gallery) android app.
 
+![Home Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/home.png)
+
 ## Features
 
 * **Improve the search** of you android gallery by **detecting text and generating descriptions and labels** for your images.
   
-  * Is there a cat in a photo? You'll be able to search "cat" to find it!
+  * Is there a cat in a photo? Just search "cat" to find it!
 
 * Simple **in-app albums search**.
   
@@ -14,7 +16,7 @@ Backup your albums and enable smart searching in the [Coon Gallery](https://gith
 
 * **Sync your albums** from your phone to your PC.
   
-  * Tired of paying for subscriptions? Make local backups with just one click!
+  * Tired of cloud backups? Make local backups with just one click!
 
 * **Sync your metadata** between your devices.
   
@@ -29,6 +31,7 @@ This app was made using **Python 3.13.11**, other versions may work but aren't t
    You can do it manually or by running:
    
    `git clone https://github.com/BOTPanzer/Coon-Gallery-PC.git`
+
 2. **Install dependencies**
    
    You can install them by running:
@@ -36,6 +39,7 @@ This app was made using **Python 3.13.11**, other versions may work but aren't t
    `pip install name==version`
    
    Using other versions may work but these are the ones used while developing the app:
+   
    - textual (7.0.0)
    - websockets (15.0.1)
    - transformers (4.53.3, newer versions will throw errors)
@@ -43,6 +47,7 @@ This app was made using **Python 3.13.11**, other versions may work but aren't t
    - einops (0.8.1)
    - timm (1.0.24)
    - python-doctr (1.0.0)
+
 3. **Running the app**
    
    You can run the app by opening:
@@ -60,6 +65,7 @@ The app should now run, but generating metadata wont work yet. For that, it is n
    You can do it [manually](https://huggingface.co/microsoft/Florence-2-large/tree/main) or by running:
    
    `git clone https://huggingface.co/microsoft/Florence-2-large`
+
 2. **Move the model**
    
    Create a `./data/florence2/` folder and move the model files inside. It should look like this:
@@ -83,50 +89,50 @@ The app is divided into different menus.
 
 ### Home
 
-  This is the menu where you are greeted after opening the app. You can use it to navigate to other menus or exit the app.
+This is the menu where you are greeted after opening the app. You can use it to navigate to other menus or exit the app.
 
 ![Home Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/home.png)
 
 ### Settings
-  
-  Here you will be able to setup *links*, which are connections between an *album folder* and a *metadata file*. 
-  
-  - Adding an *album folder* will let you use the **sync** menu to backup your albums from your phone to your computer.
-  
-  - Adding an *album folder* and a *metadata file* will let you use the **metadata** menu to generate information about your images and improve search.
-  
-  **Note:** links should be in the same order as in the phone app.
+
+Here you will be able to setup *links*, which are connections between an *album folder* and a *metadata file*. 
+
+- Adding an *album folder* will let you use the **sync** menu to backup your albums from your phone to your computer.
+
+- Adding an *album folder* and a *metadata file* will let you use the **metadata** menu to generate information about your images and improve search.
+
+**Note:** links should be in the same order as in the phone app.
 
 ![Settings Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/settings.png)
 
 ### Metadata
+
+Here is where you can search and generate information about your images. There are 3 different actions to perform.
+
+- **Search albums:** asks for a text input and searches in your albums to find images that contain it. If you search for "cat", images containing a cat will appear.
+
+- **Clean metadata:** sorts the keys inside each metadata file and removes the ones whose file has been deleted. You'll most likely never need to use this.
+
+- **Fix metadata:** generates metadata for all images that don't have it: 
   
-  Here is where you can search and generate information about your images. There are 3 different actions to perform.
+  - A description about the image.
   
-  - **Search albums:** asks for a text input and searches in your albums to find images that contain it. If you search for "cat", images containing a cat will appear.
+  - A list of labels for things in the image.
   
-  - **Clean metadata:** sorts the keys inside each metadata file and removes the ones whose file has been deleted. You'll most likely never need to use this.
-  
-  - **Fix metadata:** generates metadata for all images that don't have it: 
-    
-    - A description about the image.
-    
-    - A list of labels for things in the image.
-    
-    - A list of text detected in the image.
+  - A list of text detected in the image.
 
 ![Metadata Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/metadata.png)
 
 ### Sync
-  
-  The app has a server running in the background so that the phone app can connect to it. This menu lets you perform actions when the phone is connected.
-  
-  - **Start server:** in case there was a problem, you can try restarting the server from here.
-  
-  - **Download albums:** creates a backup of the linked albums from your phone in your computer.
-  
-  - **Download metadata:** updates the metadata files from your computer with the ones in your phone.
-  
-  - **Upload metadata:** updates the metadata files from your phone with the ones in your computer.
+
+The app has a server running in the background so that the phone app can connect to it. This menu lets you perform actions when the phone is connected.
+
+- **Start server:** in case there was a problem, you can try restarting the server from here.
+
+- **Download albums:** creates a backup of the linked albums from your phone in your computer.
+
+- **Download metadata:** updates the metadata files from your computer with the ones in your phone.
+
+- **Upload metadata:** updates the metadata files from your phone with the ones in your computer.
 
 ![Sync Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/sync.png)
