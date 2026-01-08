@@ -141,12 +141,12 @@ class MetadataScreen(Screen):
         # Create result event
         def on_result(value: str):
             # Check if canceled
-            if value.strip() == '': 
+            if value == None: 
                 return
 
             # Check if value is long enough
             if len(value) <3: 
-                self.log_message('Search must be at least 3 characters long')
+                self.app.notify('Search must be at least 3 characters long')
                 return
 
             # Start search
@@ -156,7 +156,7 @@ class MetadataScreen(Screen):
             self.run_worker(self.execute_option_search(value), thread=True)
 
         # Create dialog
-        self.app.push_screen(InputDialog(placeholder=f'What do you want to search?'), on_result)
+        self.app.push_screen(InputDialog(placeholder='What do you want to search?', confirm='Search'), on_result)
 
     async def execute_option_search(self, value: str):
         # Create found items count

@@ -49,20 +49,20 @@ class Util:
 
     # Explorer
     @staticmethod
-    def ask_for_folder() -> str:
+    def ask_for_folder(title: str = None) -> str:
         root = tk.Tk()
         root.withdraw()
         root.attributes('-topmost', True) # Bring to front
-        folder_path = filedialog.askdirectory()
+        folder_path = filedialog.askdirectory(title=title)
         root.destroy()
         return folder_path
 
     @staticmethod
-    def ask_for_file() -> str:
+    def ask_for_file(title: str = None) -> str:
         root = tk.Tk()
         root.withdraw()
         root.attributes('-topmost', True) # Bring to front
-        file_path = filedialog.askopenfilename()
+        file_path = filedialog.askopenfilename(title=title)
         root.destroy()
         return file_path
 

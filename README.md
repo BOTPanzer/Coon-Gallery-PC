@@ -95,9 +95,7 @@ The app is divided into different menus.
   
   - Adding an *album folder* and a *metadata file* will let you use the **metadata** menu to generate information about your images and improve search.
   
-  **Note 1:** links should be in the same order as in the phone app.
-
-  **Note 2:** you will have to create metadata files manually since it isn't supported yet. Making a json file with "{}" inside should work.
+  **Note:** links should be in the same order as in the phone app.
 
 ![Settings Menu](https://raw.githubusercontent.com/BOTPanzer/Coon-Gallery-PC/refs/heads/main/screenshots/settings.png)
 
