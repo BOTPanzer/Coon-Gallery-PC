@@ -1,9 +1,8 @@
 from util.library import Link
+from util.util import Util
 from textual.widgets import Static, Label, Button, Input
 from textual.containers import Horizontal, Vertical
 from collections.abc import Callable
-import tkinter as tk
-from tkinter import filedialog
 
 class LinkItem(Static):
 
@@ -47,22 +46,14 @@ class LinkItem(Static):
                 event.stop() # Stop the event from bubbling up to the screen
                 self.on_remove(self)
             case 'select-album':
-                # Open explorer
-                root = tk.Tk()
-                root.withdraw()
-                root.attributes('-topmost', True) # Bring to front
-                folder_path = filedialog.askdirectory()
-                root.destroy()
+                # Ask for a folder
+                folder_path = Util.ask_for_folder()
 
                 # Update input
                 if folder_path: self.w_input_album.value = folder_path
             case 'select-metadata':
-                # Open explorer
-                root = tk.Tk()
-                root.withdraw()
-                root.attributes('-topmost', True) # Bring to front
-                file_path = filedialog.askopenfilename()
-                root.destroy()
+                # Ask for a file
+                file_path = Util.ask_for_file()
 
                 # Update input
                 if file_path: self.w_input_metadata.value = file_path

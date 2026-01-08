@@ -3,6 +3,8 @@ import pathlib
 import os
 import websockets
 import socket
+import tkinter as tk
+from tkinter import filedialog
 
 # Util functions
 class Util:
@@ -26,28 +28,47 @@ class Util:
 
     # Paths
     @staticmethod
-    def join_path(parent, child):
+    def join_path(parent, child) -> str:
         return os.path.join(parent, child)
 
     @staticmethod
-    def exists_path(path):
+    def exists_path(path) -> bool:
         return os.path.exists(path)
 
     @staticmethod
-    def get_last_modified(path):
+    def get_last_modified(path) -> int:
         return os.path.getmtime(path)
 
     @staticmethod
     def set_last_modified(path, last_modified):
-        return os.utime(path, (last_modified, last_modified))
+        os.utime(path, (last_modified, last_modified))
 
     @staticmethod
-    def get_data_path():
+    def get_data_path() -> str:
         return Util.join_path(pathlib.Path().resolve(), 'data')
+
+    # Explorer
+    @staticmethod
+    def ask_for_folder() -> str:
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True) # Bring to front
+        folder_path = filedialog.askdirectory()
+        root.destroy()
+        return folder_path
+
+    @staticmethod
+    def ask_for_file() -> str:
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True) # Bring to front
+        file_path = filedialog.askopenfilename()
+        root.destroy()
+        return file_path
 
     # Network
     @staticmethod
-    def get_local_ip():
+    def get_local_ip() -> str:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             # We don't actually connect, but this identifies the right interface
