@@ -28,19 +28,19 @@ class Util:
 
     # Paths
     @staticmethod
-    def join_path(parent, child) -> str:
+    def join_path(parent: str, child: str) -> str:
         return os.path.join(parent, child)
 
     @staticmethod
-    def exists_path(path) -> bool:
+    def exists_path(path: str) -> bool:
         return os.path.exists(path)
 
     @staticmethod
-    def get_last_modified(path) -> int:
+    def get_last_modified(path: str) -> float:
         return os.path.getmtime(path)
 
     @staticmethod
-    def set_last_modified(path, last_modified):
+    def set_last_modified(path: str, last_modified: int):
         os.utime(path, (last_modified, last_modified))
 
     @staticmethod

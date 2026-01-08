@@ -180,7 +180,7 @@ class SyncServer(Server):
         self.set_syncing(False)
 
         # Log
-        if 'message' in message: self.log_message(message['message'])
+        self.log_message('Finished sync')
 
     def action_received_albums(self, message: dict):
         # Save albums list
@@ -239,6 +239,12 @@ class SyncServer(Server):
 
     # Actions (receive metadata)
     async def action_received_metadata_info(self, message: dict):
+        # Check if last modified is valid (if client doesn't have the file it doesn't add it)
+        if 'lastModified' not in message:
+            # Not valid -> Request next
+            self.log_message('Client does not have the file')
+            await self.request_next_queue_metadata()
+
         # Create new request info
         request = Request()
         request.album_index = message['albumIndex']
@@ -254,10 +260,10 @@ class SyncServer(Server):
     async def action_received_metadata_data(self, request: Request, data: bytes):
         # Get info
         album_index: int = request.album_index
-        item_path: str = Library.links[album_index].metadata_path
+        metadata_path: str = Library.links[album_index].metadata_path
 
         # Manage write data
-        finished: bool = self.manage_write_data(request, data, item_path)
+        finished: bool = self.manage_write_data(request, data, metadata_path)
 
         # Check if finished
         if finished:
@@ -295,7 +301,7 @@ class SyncServer(Server):
         await self.send(Path(metadata_path).read_bytes())
 
     # Helpers
-    def manage_write_data(self, request: Request, data: bytes, item_path: str) -> bool:
+    def manage_write_data(self, request: Request, data: bytes, file_path: str) -> bool:
         # Get info
         last_modified: int = request.last_modified
         size: int = max(request.size, len(data)) # Use data length in case size was not determined (metadata doesn't)
@@ -310,12 +316,12 @@ class SyncServer(Server):
         # Write file
         if is_valid:
             # File does not exist -> Create it & resize it to full size
-            if not Util.exists_path(item_path):
-                with open(item_path, 'wb') as f: 
+            if not Util.exists_path(file_path):
+                with open(file_path, 'wb') as f: 
                     f.truncate(size)
 
             # Write data on part offset
-            with open(item_path, 'rb+') as f:
+            with open(file_path, 'rb+') as f:
                 offset = part_index * part_max_size
                 f.seek(offset)
                 f.write(data)
@@ -326,7 +332,7 @@ class SyncServer(Server):
             # Check if is the last part 
             if is_last:
                 # Is the last part -> Update last modified timestamp
-                Util.set_last_modified(item_path, last_modified)
+                Util.set_last_modified(file_path, last_modified)
 
                 # Log progress
                 progress_current = (self.host.queue_index + 1)
@@ -360,12 +366,15 @@ class SyncServer(Server):
             # No items left -> Finished sync
             self.set_syncing(False)
             self.log_message('Finished downloading albums')
+            await self.send(json.dumps({
+                'action': 'endSync'
+            }))
         else:
             # Items left -> Get next item
             next = self.host.queue[queue_index]
 
             # Request next
-            self.log_message(f'- Requesting "{self.client.albums[next.album_index][next.item_index]}"...')
+            self.log_message(f'- Requesting item "{self.client.albums[next.album_index][next.item_index]}"...')
             await self.send(json.dumps({
                 'action': 'requestItemInfo',
                 'albumIndex': next.album_index,
@@ -388,6 +397,9 @@ class SyncServer(Server):
             # No items left -> Finished sync
             self.set_syncing(False)
             self.log_message('Finished downloading metadata')
+            await self.send(json.dumps({
+                'action': 'endSync'
+            }))
         else:
             # Items left -> Get next item
             next = self.host.queue[queue_index]
