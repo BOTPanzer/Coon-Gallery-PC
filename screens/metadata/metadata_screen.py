@@ -266,7 +266,7 @@ class MetadataScreen(Screen):
                     init_description_model()
 
                     # Load image
-                    item_image: ImageFile = Image.open(item.path)
+                    item_image: ImageFile = Image.open(item.path).convert("RGB")
 
                     # Fix caption
                     if fix_caption:

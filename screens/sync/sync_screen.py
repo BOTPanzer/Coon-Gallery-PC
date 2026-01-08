@@ -1,3 +1,4 @@
+from util.dialogs import ConfirmDialog
 from screens.sync.sync_server import SyncServer
 from textual.screen import Screen
 from textual.widgets import Header, Button, Label
@@ -59,11 +60,8 @@ class SyncScreen(Screen):
                 with Vertical():
                     yield self.w_info
                     yield Button(classes='menu_button', id='start-server', label='Start server', tooltip='Starts the sync server if it\'s not running')
-                    yield Label('Sync albums')
-                    yield Button(classes='menu_button', id='download-albums', label='Download', tooltip='Updates the albums in this system with the ones in the client')
-                    yield Label('Sync metadata')
-                    yield Button(classes='menu_button', id='download-metadata', label='Download', tooltip='Updates the metadata in this system with the one in the client')
-                    yield Button(classes='menu_button', id='upload-metadata', label='Upload', tooltip='Updates the metadata in the client with the one in this system')
+                    yield Button(classes='menu_button', id='sync-albums', label='Sync albums', tooltip='Updates the albums in this system with the albums in the client')
+                    yield Button(classes='menu_button', id='sync-metadata', label='Sync metadata', tooltip='Updates the metadata in one system with the metadata in the other system')
             yield self.w_logs
 
     def update_info(self):
@@ -84,15 +82,12 @@ class SyncScreen(Screen):
             # Start server
             case 'start-server':
                 self.run_worker(SyncServer.current.start(), thread=True)
-            # Download albums
-            case 'download-albums':
+            # Sync albums
+            case 'sync-albums':
                 self.run_worker(SyncServer.current.download_albums, thread=True)
-            # Download metadata
-            case 'download-metadata':
-                self.run_worker(SyncServer.current.download_metadata, thread=True)
-            # Upload metadata
-            case 'upload-metadata':
-                self.run_worker(SyncServer.current.upload_metadata, thread=True)
+            # Sync metadata
+            case 'sync-metadata':
+                self.option_sync_metadata()
 
     def on_log_message(self, error: str):
         # Log
@@ -120,3 +115,16 @@ class SyncScreen(Screen):
 
     def log_message_async(self, message: str):
         self.app.call_from_thread(self.log_message, message)
+
+    # Options
+    def option_sync_metadata(self):
+        # Create result event
+        def on_result(download: bool):
+            # Check if should download or upload
+            if download:
+                self.run_worker(SyncServer.current.download_metadata, thread=True)
+            else:
+                self.run_worker(SyncServer.current.upload_metadata, thread=True)
+
+        # Create dialog
+        self.app.push_screen(ConfirmDialog(title='Who should sync its metadata?\n· Send: PC -> Client\n· Receive: Client -> PC', cancel='Send', confirm='Receive'), on_result)
