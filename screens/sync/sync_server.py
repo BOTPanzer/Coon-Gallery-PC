@@ -206,7 +206,9 @@ class SyncServer(Server):
             'action': 'requestItemData',
             'albumIndex': request.album_index,
             'itemIndex': request.item_index,
-            'part': request.part_index
+            'part': request.part_index,
+            'requestIndex': self.host.queue_index,
+            'requestCount': len(self.host.queue)
         }))
 
     async def action_received_item_data(self, request: Request, data: bytes):
@@ -230,7 +232,9 @@ class SyncServer(Server):
                 'action': 'requestItemData',
                 'albumIndex': album_index,
                 'itemIndex': item_index,
-                'part': part_index
+                'part': part_index,
+                'requestIndex': self.host.queue_index,
+                'requestCount': len(self.host.queue)
             }))
 
     # Actions (receive metadata)
