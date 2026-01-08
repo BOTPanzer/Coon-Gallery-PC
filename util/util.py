@@ -99,14 +99,19 @@ class Server:
             self.log_message('Server is already running')
             return
 
+        # Save connection address
+        self.IP = Util.get_local_ip()
+        self.PORT = PORT
+
         # Log starting
-        self.log_message(f'Starting server in {Util.get_local_ip()}:{PORT}...')
+        self.log_message(f'Starting server in {self.IP}:{self.PORT}...')
 
         # Start server
         try:
             async with websockets.serve(
                 self.handler, 
-                HOST, PORT, 
+                HOST, 
+                PORT, 
                 max_size=10_485_760  # 10 MB limit
             ) as server:
                 # Mark as running
@@ -179,9 +184,9 @@ class Server:
     def on_connection_state_changed(self, is_open: bool, client_ip: str):
         # Log
         if is_open:
-            self.log_message(f'Connected to client {client_ip}')
+            self.log_message(f'Connected to client with IP {client_ip}')
         else:
-            self.log_message(f'Disconnected from client {client_ip}')
+            self.log_message(f'Disconnected from client with IP {client_ip}')
 
     # Data
     async def on_received_string(self, message: str):

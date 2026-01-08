@@ -70,9 +70,10 @@ class SyncScreen(Screen):
         # Get info
         is_running = '🟢' if SyncServer.current.is_running else '🔴'
         is_connected = '🟢' if SyncServer.current.is_connected else '🔴'
+        connection_code = SyncServer.current.connection_code
 
         # Update info text
-        self.w_info.content = f'· Server running: {is_running}\n· Client connected: {is_connected}'
+        self.w_info.content = f'· Server running: {is_running}\n· Client connected: {is_connected}\n· Code: {connection_code}'
 
     # Events
     def on_button_pressed(self, event: Button.Pressed):

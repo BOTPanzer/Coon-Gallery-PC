@@ -56,6 +56,7 @@ class SyncServer(Server):
     def __init__(self):
         # Info
         self.is_syncing = False
+        self.connection_code = ''
         self.reset_info()
 
         # Events
@@ -103,8 +104,13 @@ class SyncServer(Server):
         # Call parent function
         super().on_server_state_changed(is_running)
 
-        # Stop suyncing if connection was closed
-        if not is_running: 
+        # Check if running
+        if is_running:
+            # Connection open -> Generate connection code
+            self.connection_code = self.address_to_code(self.IP, self.PORT)
+        else:
+            # Connection closed -> Reset connection code & stop syncing
+            self.connection_code = ''
             self.set_syncing(False)
 
         # Call event
@@ -169,6 +175,27 @@ class SyncServer(Server):
         else:
             # No item index _> Is a metadata request
             await self.action_received_metadata_data(request, data)
+
+    # Connection code
+    def encode_base36(self, n):
+        import string
+        CODE_CHARSET = string.digits + string.ascii_uppercase
+        if n == 0: return CODE_CHARSET[0]
+        res = ""
+        while n:
+            n, rem = divmod(n, 36)
+            res = CODE_CHARSET[rem] + res
+        return res
+
+    def address_to_code(self, ip: str, port: int):
+        # Convert IP string to 4 integers
+        parts = list(map(int, ip.split('.')))
+
+        # Pack into a single large integer: (IP << 16) + Port
+        # This keeps the port within the same number
+        ip_num = (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parts[3]
+        combined = (ip_num << 16) + port
+        return self.encode_base36(combined)
 
     # Syncing
     def set_syncing(self, new_syncing: bool):
