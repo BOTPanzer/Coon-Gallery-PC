@@ -260,6 +260,9 @@ class MetadataScreen(Screen):
 
                 if not fix_caption and not fix_labels and not fix_text: continue
 
+                # Log fixing
+                self.log_message_async(f'- Fixing "{item.name}"...')
+
                 # Check if description model is needed
                 if fix_caption or fix_labels:
                     # Is needed -> Make sure its init
@@ -271,13 +274,13 @@ class MetadataScreen(Screen):
                     # Fix caption
                     if fix_caption:
                         # Generate caption
-                        self.log_message_async(f'{item.name}: Generating caption...')
+                        self.log_message_async('Generating caption...')
                         item_metadata['caption'] = description_model.generate_caption(item_image)
 
                     # Fix labels
                     if fix_labels:
                         # Generate labels
-                        self.log_message_async(f'{item.name}: Generating labels...')
+                        self.log_message_async('Generating labels...')
                         item_metadata['labels'] = description_model.generate_labels(item_image)
 
                     # Mark item as modified
@@ -289,7 +292,7 @@ class MetadataScreen(Screen):
                     init_text_model()
 
                     # Generate text
-                    self.log_message_async(f'{item.name}: Generating text...')
+                    self.log_message_async('Generating text...')
                     item_metadata['text'] = text_model.detect_text(item.path)
 
                     # Mark item as modified

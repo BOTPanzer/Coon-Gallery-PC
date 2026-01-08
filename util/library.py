@@ -173,6 +173,9 @@ class Album:
                 # No metadata -> Increase "without" count
                 self.items_without_metadata += 1
 
+        # Sort items
+        self.sort_items()
+
     def sort_items(self): 
         # Sort items by modified date (newest first)
         self.items.sort(key=lambda item: Util.get_last_modified(item.path), reverse=True)
