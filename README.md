@@ -16,7 +16,7 @@ Backup your albums and enable smart searching in the [Coon Gallery](https://gith
 
 * **Sync your albums** from your phone to your PC.
   
-  * Tired of cloud backups? Make local backups with just one click!
+  * Tired of relying on the cloud? Make local backups with just one click!
 
 * **Sync your metadata** between your devices.
   
