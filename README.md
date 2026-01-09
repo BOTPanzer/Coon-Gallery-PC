@@ -27,10 +27,8 @@ Backup your albums and enable smart searching in the [Coon Gallery](https://gith
 This app was made using **Python 3.13.11**, other versions may work but aren't tested. To run the app:
 
 1. **Download the project**
-   
-   You can do it manually or by running:
-   
-   `git clone https://github.com/BOTPanzer/Coon-Gallery-PC.git`
+
+   Choose wichever version you want from the [releases page](https://github.com/BOTPanzer/Coon-Gallery-PC/releases) and download the source code zip.
 
 2. **Install dependencies**
    
